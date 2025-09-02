@@ -1,10 +1,26 @@
 package com.almacenaws.model;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+
+@Entity
 public class Inventory {
 	
-	private int id;	
+	@Id
+	@GeneratedValue
+	@Column
+	private int id;
+	
+	@ManyToOne
 	private Warehouse warehouse;
+	
+	@ManyToOne
 	private Product product;
+	
+	@Column
 	private Integer quantity;
 	
 	public int getId() {

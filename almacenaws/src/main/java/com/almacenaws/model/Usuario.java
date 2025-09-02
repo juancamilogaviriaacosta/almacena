@@ -1,11 +1,34 @@
 package com.almacenaws.model;
 
-public class User {
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+
+@Entity
+public class Usuario {
+	
+	@Id
+	@GeneratedValue
+	@Column
 	private int id;
+	
+	@Column
     private String userName;
+	
+	@Column
     private String name;
+	
+	@Column
     private String email;
+	
+	@Column
+	@Enumerated(EnumType.STRING)
     private Role role;
+	
+	@Column
     private String password;
     
 	public int getId() {

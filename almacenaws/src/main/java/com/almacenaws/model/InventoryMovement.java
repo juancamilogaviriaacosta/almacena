@@ -2,72 +2,116 @@ package com.almacenaws.model;
 
 import java.util.Date;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
+
+@Entity
 public class InventoryMovement {
 	
+	@Id
+	@GeneratedValue
+	@Column
 	private int id;
-	private Product product;
-	private Warehouse fromWarehouse;
-	private Warehouse toWarehouse;
-	private Integer quantity;
-	private MovementType movementType;
-	private Date timestamp;
-	private String notes;
-	private User user;
 	
+	@ManyToOne
+	private Product product;
+	
+	@ManyToOne
+	private Warehouse fromWarehouse;
+	
+	@ManyToOne
+	private Warehouse toWarehouse;
+	
+	@Column
+	private Integer quantity;
+	
+	@Column
+	private MovementType movementType;
+	
+	@Column
+	@Temporal(TemporalType.TIMESTAMP)
+	private Date timestamp;
+	
+	@Column
+	private String notes;
+	
+	@ManyToOne
+	private Usuario usuario;
+
 	public int getId() {
 		return id;
 	}
+
 	public void setId(int id) {
 		this.id = id;
 	}
+
 	public Product getProduct() {
 		return product;
 	}
+
 	public void setProduct(Product product) {
 		this.product = product;
 	}
+
 	public Warehouse getFromWarehouse() {
 		return fromWarehouse;
 	}
+
 	public void setFromWarehouse(Warehouse fromWarehouse) {
 		this.fromWarehouse = fromWarehouse;
 	}
+
 	public Warehouse getToWarehouse() {
 		return toWarehouse;
 	}
+
 	public void setToWarehouse(Warehouse toWarehouse) {
 		this.toWarehouse = toWarehouse;
 	}
+
 	public Integer getQuantity() {
 		return quantity;
 	}
+
 	public void setQuantity(Integer quantity) {
 		this.quantity = quantity;
 	}
+
 	public MovementType getMovementType() {
 		return movementType;
 	}
+
 	public void setMovementType(MovementType movementType) {
 		this.movementType = movementType;
 	}
+
 	public Date getTimestamp() {
 		return timestamp;
 	}
+
 	public void setTimestamp(Date timestamp) {
 		this.timestamp = timestamp;
 	}
+
 	public String getNotes() {
 		return notes;
 	}
+
 	public void setNotes(String notes) {
 		this.notes = notes;
 	}
-	public User getUser() {
-		return user;
+
+	public Usuario getUsuario() {
+		return usuario;
 	}
-	public void setUser(User user) {
-		this.user = user;
+
+	public void setUsuario(Usuario usuario) {
+		this.usuario = usuario;
 	}
-	
-	
 }

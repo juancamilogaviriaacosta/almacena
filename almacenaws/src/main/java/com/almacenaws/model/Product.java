@@ -1,11 +1,28 @@
 package com.almacenaws.model;
 
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.Id;
+
+@Entity
 public class Product {
 	
+	@Id
+	@GeneratedValue
+	@Column
 	private int id;
+	
+	@Column
 	private String sku;
+	
+	@Column
 	private String name;
+	
+	@Column
 	private String description;
+	
+	@Column
 	private String category;
 	
 	public int getId() {
