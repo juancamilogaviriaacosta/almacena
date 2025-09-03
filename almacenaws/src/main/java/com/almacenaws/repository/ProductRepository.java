@@ -8,6 +8,7 @@ import org.springframework.stereotype.Repository;
 
 import com.almacenaws.model.Product;
 
+
 @Repository
 public class ProductRepository {
 
@@ -15,18 +16,20 @@ public class ProductRepository {
     private JdbcTemplate jdbcTemplate;
 
     public List<Product> findAll() {
-        return jdbcTemplate.query("SELECT * FROM products",
+        return jdbcTemplate.query("SELECT * FROM product",
             (rs, rowNum) -> {
-            	Product user = new Product();
-                user.setId(rs.getInt("id"));
-                user.setName(rs.getString("name"));
-                user.setSku(rs.getString("sku"));
-                return user;
+            	Product tmp = new Product();
+            	tmp.setId(rs.getInt("id"));
+            	tmp.setSku(rs.getString("sku"));
+            	tmp.setName(rs.getString("name"));
+            	tmp.setDescription(rs.getString("description"));
+                tmp.setCategory(rs.getString("category"));
+                return tmp;
             });
     }
 
-    public void save(Product user) {
-        jdbcTemplate.update("INSERT INTO products(name, sku) VALUES (?, ?)",
-            user.getName(), user.getSku());
+    public void save(Product tmp) {
+        jdbcTemplate.update("INSERT INTO product(sku, name, description, category) VALUES (?, ?, ?, ?)",
+            tmp.getSku(), tmp.getName(), tmp.getDescription(), tmp.getCategory());
     }
 }

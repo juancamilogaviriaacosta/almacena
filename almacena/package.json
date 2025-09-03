@@ -5,6 +5,7 @@
     "ng": "ng",
     "start": "ng serve",
     "build": "ng build",
+    "toSpring":"ng build --aot --output-hashing=all && cp dist/almacena/browser/* ../almacenaws/src/main/resources/static",
     "watch": "ng build --watch --configuration development",
     "test": "ng test"
   },

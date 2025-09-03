@@ -26,7 +26,7 @@ public class MainController {
     }
 
     @PostMapping
-    public ResponseEntity<String> createUser(@RequestBody Product product) {
+    public ResponseEntity<String> createProduct(@RequestBody Product product) {
     	productService.createProduct(product);
         return ResponseEntity.ok("Usuario creado");
     }
