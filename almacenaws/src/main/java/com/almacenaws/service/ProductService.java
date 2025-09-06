@@ -5,6 +5,7 @@ import java.util.List;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import com.almacenaws.model.InventoryMovement;
 import com.almacenaws.model.Product;
 import com.almacenaws.repository.ProductRepository;
 
@@ -14,11 +15,15 @@ public class ProductService {
     @Autowired
     private ProductRepository productRepository;
 
-    public List<Product> getAllProducts() {
-        return productRepository.findAll();
+    public List<Product> getProducts() {
+        return productRepository.getProducts();
     }
 
-    public void createProduct(Product user) {
-    	productRepository.save(user);
+    public void createProduct(Product product) {
+    	productRepository.createProduct(product);
+    }
+    
+    public List<InventoryMovement> getIventoryMovement () {
+    	productRepository.getIventoryMovement();
     }
 }

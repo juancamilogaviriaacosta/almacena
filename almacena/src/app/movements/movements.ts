@@ -2,12 +2,12 @@ import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 
 @Component({
-  selector: 'app-home',
+  selector: 'app-movements',
   imports: [],
-  templateUrl: './home.html',
-  styleUrl: './home.css'
+  templateUrl: './movements.html',
+  styleUrl: './movements.css'
 })
-export class Home implements OnInit {
+export class Movements implements OnInit {
 
   products:any;
 

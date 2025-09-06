@@ -1,1 +1,125 @@
-/* You can add global styles to this file, and also import other style files */
+/* Reset básico */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Barra de navegación */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background-color: #0d6efd;
+  color: white;
+  padding: 0.75rem 2rem;
+}
+
+.navbar .logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.nav-links {
+  list-style: none;
+  display: flex;
+  gap: 1.5rem;
+}
+
+.nav-links a {
+  color: white;
+  text-decoration: none;
+  font-weight: 500;
+}
+
+.nav-links a:hover {
+  text-decoration: underline;
+}
+
+/* Hero section */
+.hero {
+  text-align: center;
+  padding: 5rem 1rem;
+  background: linear-gradient(to bottom, #e9ecef, #ffffff);
+}
+
+.hero h1 {
+  font-size: 2.5rem;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+.hero p {
+  font-size: 1.2rem;
+  margin-bottom: 2rem;
+  color: #555;
+}
+
+.hero button {
+  background-color: #0d6efd;
+  color: white;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 0.3rem;
+  font-size: 1rem;
+  cursor: pointer;
+}
+
+.hero button:hover {
+  background-color: #0b5ed7;
+}
+
+
+/* Estilos base para la tabla */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-family: Arial, sans-serif;
+  font-size: 0.95rem;
+  margin: 1rem 0;
+  background-color: #fff;
+  border: 1px solid #ddd;
+}
+
+/* Cabecera */
+thead {
+  background-color: #0d6efd;
+  color: #fff;
+  text-align: left;
+}
+
+thead th {
+  padding: 0.75rem;
+  font-weight: bold;
+}
+
+/* Filas */
+tbody tr {
+  border-bottom: 1px solid #ddd;
+}
+
+tbody tr:nth-child(even) {
+  background-color: #f9f9f9; /* zebra stripes */
+}
+
+tbody td {
+  padding: 0.75rem;
+  color: #333;
+  text-align: left;
+}
+
+/* Hover */
+tbody tr:hover {
+  background-color: #e9f2ff;
+}
+
+/* Bordes redondeados en la tabla completa (opcional) */
+table {
+  border-radius: 0.5rem;
+  overflow: hidden; /* para que los bordes redondeados se apliquen también al contenido */
+}
+
+/* Responsive: scroll horizontal en pantallas pequeñas */
+.table-container {
+  overflow-x: auto;
+}

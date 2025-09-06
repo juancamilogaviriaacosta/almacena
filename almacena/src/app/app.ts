@@ -1,17 +1,10 @@
 import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
-import { Home } from './home/home';
+import { RouterOutlet, RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-root',
-  imports: [Home],
-  template: `
-    <main>
-      <section class="content">
-        <app-home></app-home>
-      </section>
-    </main>
-  `,
+  imports: [RouterOutlet, RouterLink],
+  templateUrl: './app.html',
   styleUrl: './app.css'
 })
 export class App {
