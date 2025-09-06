@@ -4,6 +4,8 @@ import java.util.Date;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -32,11 +34,12 @@ public class InventoryMovement {
 	private Integer quantity;
 	
 	@Column
+	@Enumerated(EnumType.STRING)
 	private MovementType movementType;
 	
 	@Column
 	@Temporal(TemporalType.TIMESTAMP)
-	private Date timestamp;
+	private Date fechahora;
 	
 	@Column
 	private String notes;
@@ -92,12 +95,12 @@ public class InventoryMovement {
 		this.movementType = movementType;
 	}
 
-	public Date getTimestamp() {
-		return timestamp;
+	public Date getFechahora() {
+		return fechahora;
 	}
 
-	public void setTimestamp(Date timestamp) {
-		this.timestamp = timestamp;
+	public void setFechahora(Date fechahora) {
+		this.fechahora = fechahora;
 	}
 
 	public String getNotes() {

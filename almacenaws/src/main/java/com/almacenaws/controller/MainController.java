@@ -21,6 +21,12 @@ public class MainController {
     @Autowired
     private ProductService productService;
    
+    @GetMapping(path = "initDatabase")
+    public ResponseEntity<String> initDatabase() {
+        productService.initDatabase();
+        return ResponseEntity.ok("Ok");
+    }
+    
     @GetMapping(path = "getProducts")
     public List<Product> getProducts() {
         return productService.getProducts();
@@ -29,11 +35,11 @@ public class MainController {
     @PostMapping(path = "createProduct")
     public ResponseEntity<String> createProduct(@RequestBody Product product) {
     	productService.createProduct(product);
-        return ResponseEntity.ok("Usuario creado");
+        return ResponseEntity.ok("Producto creado");
     }
     
-    @GetMapping(path = "getIventoryMovement")
-    public List<InventoryMovement> getIventoryMovement() {
-        return productService.getIventoryMovement();
+    @GetMapping(path = "getInventoryMovement")
+    public List<InventoryMovement> getInventoryMovement() {
+        return productService.getInventoryMovement();
     }
 }

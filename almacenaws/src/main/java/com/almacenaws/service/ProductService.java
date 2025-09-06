@@ -15,6 +15,10 @@ public class ProductService {
     @Autowired
     private ProductRepository productRepository;
 
+    public void initDatabase() {
+    	productRepository.initDatabase();
+    }
+    
     public List<Product> getProducts() {
         return productRepository.getProducts();
     }
@@ -23,7 +27,7 @@ public class ProductService {
     	productRepository.createProduct(product);
     }
     
-    public List<InventoryMovement> getIventoryMovement () {
-    	productRepository.getIventoryMovement();
+    public List<InventoryMovement> getInventoryMovement () {
+    	return productRepository.getInventoryMovement();
     }
 }
