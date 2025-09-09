@@ -1,7 +1,6 @@
 package com.almacenaws.model;
 
-import java.util.Date;
-
+import java.time.OffsetDateTime;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -37,15 +36,22 @@ public class InventoryMovement {
 	@Enumerated(EnumType.STRING)
 	private MovementType movementType;
 	
-	@Column
+	@Column(columnDefinition = "TIMESTAMP WITHOUT TIME ZONE")
 	@Temporal(TemporalType.TIMESTAMP)
-	private Date fechahora;
+	private OffsetDateTime fechahora;
 	
 	@Column
 	private String notes;
 	
 	@ManyToOne
 	private Usuario usuario;
+	
+	public InventoryMovement() {
+	}
+
+	public InventoryMovement(int id) {
+		this.id = id;
+	}
 
 	public int getId() {
 		return id;
@@ -95,11 +101,11 @@ public class InventoryMovement {
 		this.movementType = movementType;
 	}
 
-	public Date getFechahora() {
+	public OffsetDateTime getFechahora() {
 		return fechahora;
 	}
 
-	public void setFechahora(Date fechahora) {
+	public void setFechahora(OffsetDateTime fechahora) {
 		this.fechahora = fechahora;
 	}
 

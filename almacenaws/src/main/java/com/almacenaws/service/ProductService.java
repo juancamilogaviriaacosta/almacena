@@ -1,6 +1,7 @@
 package com.almacenaws.service;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,6 +26,10 @@ public class ProductService {
 
     public void createProduct(Product product) {
     	productRepository.createProduct(product);
+    }
+    
+    public List<Map<String, Object>> getInventory () {
+    	return productRepository.getInventory();
     }
     
     public List<InventoryMovement> getInventoryMovement () {

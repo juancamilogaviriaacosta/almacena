@@ -2,29 +2,41 @@
 <header class="hero">
   <h1>Bienvenido a Almacena</h1>
   <p>La mejor solución para tu negocio, rápida y segura.</p>
+
+  <div class="div-left">
+    <button>Subir archivo ML</button>
+    <button>Subir archivo Dropi</button>
+  </div>
+  
   
   <table cellpadding="8" cellspacing="0" style="width:100%; border-collapse:collapse">
     <thead>
         <tr>
             <th>Sku</th>
-            <th>Nombre</th>
-            <th>Descripcion</th>
-            <th>Categoria</th>
+            <th>Código 1</th>
+            <th>Código 2</th>
+            <th>Producto</th>
+            <th>Categoría</th>
+            <th>Cantidad</th>
+            <th>Ubicación</th>            
         </tr>
     </thead>
 
     <tbody>
-        @for (p of products; track p.id) {
+        @for (p of inventory; track p) {
         <tr>
             <td>{{ p.sku }}</td>
+            <td>{{ p.aux1 }}</td>
+            <td>{{ p.aux2 }}</td>
             <td>{{ p.name }}</td>
-            <td>{{ p.description }}</td>
             <td>{{ p.category }}</td>
+            <td>{{ p.quantity }}</td>
+            <td>{{ p.warehouse }}</td>
         </tr>
         }
     </tbody>
 </table>
 
-<button>Comenzar</button>
+<!--<button>Comenzar</button>-->
 
 </header>

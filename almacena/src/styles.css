@@ -69,6 +69,13 @@
   background-color: #0b5ed7;
 }
 
+.div-left {
+  text-align: right;
+}
+
+.div-left button {
+  margin: 5px;
+}
 
 /* Estilos base para la tabla */
 table {

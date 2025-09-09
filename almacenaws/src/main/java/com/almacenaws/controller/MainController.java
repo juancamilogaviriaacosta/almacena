@@ -1,6 +1,7 @@
 package com.almacenaws.controller;
 
 import java.util.List;
+import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -36,6 +37,11 @@ public class MainController {
     public ResponseEntity<String> createProduct(@RequestBody Product product) {
     	productService.createProduct(product);
         return ResponseEntity.ok("Producto creado");
+    }
+    
+    @GetMapping(path = "getInventory")
+    public List<Map<String, Object>> getInventory() {
+        return productService.getInventory();
     }
     
     @GetMapping(path = "getInventoryMovement")

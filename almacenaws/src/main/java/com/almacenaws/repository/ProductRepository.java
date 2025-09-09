@@ -1,7 +1,6 @@
 package com.almacenaws.repository;
 
-import java.util.Arrays;
-import java.util.Date;
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -9,8 +8,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import com.almacenaws.model.InventoryMovement;
+import com.almacenaws.model.MovementType;
 import com.almacenaws.model.Product;
-
+import com.almacenaws.model.Usuario;
+import com.almacenaws.model.Warehouse;
 
 @Repository
 public class ProductRepository {
@@ -19,11 +20,12 @@ public class ProductRepository {
     private JdbcTemplate jdbcTemplate;
     
     public void initDatabase() {
-    	Date now = new Date();
-    	jdbcTemplate.update("INSERT INTO product(sku, name, description, category) VALUES (?, ?, ?, ?)",
-    			"001", "Fuente agua para gato", "con sensor de movimiento", "Mascotas");
-    	jdbcTemplate.update("INSERT INTO product(sku, name, description, category) VALUES (?, ?, ?, ?)",
-    			"002", "Dispensador condimentos", "Set 5 condimenteros", "Hogar");
+    	OffsetDateTime now = OffsetDateTime.now();
+    	
+    	jdbcTemplate.update("INSERT INTO product(sku, name, aux1, aux2, category) VALUES (?, ?, ?, ?, ?)",
+    			"001", "Fuente agua para gato", "MCO202464293", "535353", "Mascotas");
+    	jdbcTemplate.update("INSERT INTO product(sku, name, aux1, aux2, category) VALUES (?, ?, ?, ?, ?)",
+    			"002", "Dispensador condimentos", "MCO153516546", "616161", "Hogar");
     	jdbcTemplate.update("INSERT INTO warehouse (name) VALUES (?)",
     			"Fontibon");
     	jdbcTemplate.update("INSERT INTO warehouse (name) VALUES (?)",
@@ -32,6 +34,12 @@ public class ProductRepository {
     			"cjimportacionesco@gmail.com", "Juan David", "DQ2R789Q234", "Admin", "cjimportacionesco");
     	jdbcTemplate.update("INSERT INTO usuario (email, name, password, role, user_name) VALUES (?, ?, ?, ?, ?)",
     			"usuariocj@gmail.com", "Cosmo", "DQ2R789Q234", "Operador", "cosmo");
+    	jdbcTemplate.update("INSERT INTO inventory (product_id, quantity, warehouse_id) VALUES (?, ?, ?)",
+    			1, 700, 1);
+    	jdbcTemplate.update("INSERT INTO inventory (product_id, quantity, warehouse_id) VALUES (?, ?, ?)",
+    			1, 100, 2);
+    	jdbcTemplate.update("INSERT INTO inventory (product_id, quantity, warehouse_id) VALUES (?, ?, ?)",
+    			2, 500, 1);    	
     	jdbcTemplate.update("INSERT INTO inventory_movement(movement_type, notes, quantity, fechahora, from_warehouse_id, product_id, to_warehouse_id, usuario_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     			"Entrada", "Llega contenedor 1", 100, now, null, 1, null, 1);
     	jdbcTemplate.update("INSERT INTO inventory_movement(movement_type, notes, quantity, fechahora, from_warehouse_id, product_id, to_warehouse_id, usuario_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
@@ -50,20 +58,44 @@ public class ProductRepository {
             	tmp.setId(rs.getInt("id"));
             	tmp.setSku(rs.getString("sku"));
             	tmp.setName(rs.getString("name"));
-            	tmp.setDescription(rs.getString("description"));
+            	tmp.setAux1(rs.getString("aux1"));
                 tmp.setCategory(rs.getString("category"));
                 return tmp;
             });
     }
 
     public void createProduct(Product tmp) {
-        jdbcTemplate.update("INSERT INTO product(sku, name, description, category) VALUES (?, ?, ?, ?)",
-            tmp.getSku(), tmp.getName(), tmp.getDescription(), tmp.getCategory());
+        jdbcTemplate.update("INSERT INTO product(sku, name, aux1, aux2, category) VALUES (?, ?, ?, ?)",
+            tmp.getSku(), tmp.getName(), tmp.getAux1(), tmp.getAux2(), tmp.getCategory());
     }
     
+    public List<Map<String, Object>> getInventory() {
+    	String sql = "SELECT pro.sku, pro.aux1, pro.aux2, pro.name, pro.category, inv.quantity, war.name as warehouse\n"
+    			+ "FROM product pro\n"
+    			+ "LEFT JOIN inventory inv ON inv.product_id = pro.id\n"
+    			+ "LEFT JOIN warehouse war ON inv.warehouse_id = war.id";
+    	List<Map<String, Object>> queryForList = jdbcTemplate.queryForList(sql);
+    	return queryForList;
+	}
+    
     public List<InventoryMovement> getInventoryMovement() {
-    	List<Map<String, Object>> queryForList = jdbcTemplate.queryForList("SELECT * FROM inventory_movement");
+    	/*List<Map<String, Object>> queryForList = jdbcTemplate.queryForList("SELECT * FROM inventory_movement");
     	System.out.println(Arrays.deepToString(queryForList.toArray()));
-    	return null;
+    	return queryForList;*/
+    	
+    	return jdbcTemplate.query("SELECT * FROM inventory_movement",
+                (rs, rowNum) -> {
+                	InventoryMovement tmp = new InventoryMovement();
+                	tmp.setId(rs.getInt("id"));
+                	tmp.setProduct(new Product(rs.getInt("product_id")));
+                	tmp.setFromWarehouse(new Warehouse(rs.getInt("from_warehouse_id")));
+                	tmp.setToWarehouse(new Warehouse(rs.getInt("to_warehouse_id")));
+                	tmp.setQuantity(rs.getInt("quantity"));
+                	tmp.setMovementType(MovementType.valueOf(rs.getString("movement_type")));
+                	tmp.setFechahora(rs.getObject("fechahora", OffsetDateTime.class));
+                	tmp.setNotes(rs.getString("notes"));
+                	tmp.setUsuario(new Usuario(rs.getInt("usuario_id")));
+                    return tmp;
+                });
     }
 }

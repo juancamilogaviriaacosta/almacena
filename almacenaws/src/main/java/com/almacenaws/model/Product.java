@@ -18,41 +18,68 @@ public class Product {
 	private String sku;
 	
 	@Column
+	private String aux1;
+	
+	@Column
+	private String aux2;
+	
+	@Column
 	private String name;
 	
 	@Column
-	private String description;
-	
-	@Column
 	private String category;
+
+	public Product() {
+	}
 	
+	public Product(int id) {
+		this.id = id;
+	}
+
 	public int getId() {
 		return id;
 	}
+
 	public void setId(int id) {
 		this.id = id;
 	}
+
 	public String getSku() {
 		return sku;
 	}
+
 	public void setSku(String sku) {
 		this.sku = sku;
 	}
+
+	public String getAux1() {
+		return aux1;
+	}
+
+	public void setAux1(String aux1) {
+		this.aux1 = aux1;
+	}
+
+	public String getAux2() {
+		return aux2;
+	}
+
+	public void setAux2(String aux2) {
+		this.aux2 = aux2;
+	}
+
 	public String getName() {
 		return name;
 	}
+
 	public void setName(String name) {
 		this.name = name;
 	}
-	public String getDescription() {
-		return description;
-	}
-	public void setDescription(String description) {
-		this.description = description;
-	}
+
 	public String getCategory() {
 		return category;
 	}
+
 	public void setCategory(String category) {
 		this.category = category;
 	}
