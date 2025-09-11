@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild } from '@angular/core';
 
 @Component({
   selector: 'app-home',
@@ -9,7 +9,8 @@ import { Component, OnInit } from '@angular/core';
 })
 export class Home implements OnInit {
 
-  inventory:any;
+  @ViewChild('mlInput') mlInput: any;
+  inventory:any;  
 
   constructor(private http: HttpClient) {}
 
@@ -20,4 +21,25 @@ export class Home implements OnInit {
     });
   }
 
+  onMLClick() {
+    this.mlInput.nativeElement.click();
+  }
+
+  onMLFileSelected(event: Event) {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (file) {
+    const formData = new FormData();
+    formData.append('file', file);
+
+    this.http.post('http://localhost:8080/api/uploadFile?id=ml', formData)
+      .subscribe({
+        next: (response) => {
+          console.log('Archivo subido correctamente:', response);
+        },
+        error: (error) => {
+          console.error('Error al subir el archivo:', error);
+        }
+      });
+  }
+  }
 }

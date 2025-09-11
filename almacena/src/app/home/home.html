@@ -4,8 +4,9 @@
   <p>La mejor solución para tu negocio, rápida y segura.</p>
 
   <div class="div-left">
-    <button>Subir archivo ML</button>
-    <button>Subir archivo Dropi</button>
+    <button id="ml" (click)="onMLClick()">Subir archivo ML</button>
+    <input type="file" #mlInput style="display:none" (change)="onMLFileSelected($event)">
+    <button id="dr">Subir archivo Dropi</button>
   </div>
   
   

@@ -1,5 +1,6 @@
 package com.almacenaws.controller;
 
+import java.io.File;
 import java.util.List;
 import java.util.Map;
 
@@ -9,7 +10,9 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.almacenaws.model.InventoryMovement;
 import com.almacenaws.model.Product;
@@ -47,5 +50,11 @@ public class MainController {
     @GetMapping(path = "getInventoryMovement")
     public List<InventoryMovement> getInventoryMovement() {
         return productService.getInventoryMovement();
+    }
+    
+    @PostMapping(path = "uploadFile")
+    public void uploadFile(@RequestParam("id") String id, @RequestParam("file") MultipartFile mpf) {
+    	//mpf.getBytes();
+    	ResponseEntity.ok("Movimiento Registrado");
     }
 }
