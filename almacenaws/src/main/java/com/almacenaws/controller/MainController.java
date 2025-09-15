@@ -1,6 +1,5 @@
 package com.almacenaws.controller;
 
-import java.io.File;
 import java.util.List;
 import java.util.Map;
 
@@ -54,7 +53,7 @@ public class MainController {
     
     @PostMapping(path = "uploadFile")
     public void uploadFile(@RequestParam("id") String id, @RequestParam("file") MultipartFile mpf) {
-    	//mpf.getBytes();
+    	productService.uploadFile(id, mpf);
     	ResponseEntity.ok("Movimiento Registrado");
     }
 }

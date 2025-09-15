@@ -5,6 +5,7 @@ import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.almacenaws.model.InventoryMovement;
 import com.almacenaws.model.Product;
@@ -35,4 +36,8 @@ public class ProductService {
     public List<InventoryMovement> getInventoryMovement () {
     	return productRepository.getInventoryMovement();
     }
+
+	public void uploadFile(String id, MultipartFile mpf) {
+		productRepository.uploadFile(id, mpf);
+	}
 }

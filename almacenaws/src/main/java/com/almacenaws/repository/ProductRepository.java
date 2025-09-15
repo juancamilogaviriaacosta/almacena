@@ -1,12 +1,20 @@
 package com.almacenaws.repository;
 
 import java.time.OffsetDateTime;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import org.apache.poi.ss.usermodel.Row;
+import org.apache.poi.ss.usermodel.Sheet;
+import org.apache.poi.ss.usermodel.Workbook;
+import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
+import org.springframework.web.multipart.MultipartFile;
+
 import com.almacenaws.model.InventoryMovement;
 import com.almacenaws.model.MovementType;
 import com.almacenaws.model.Product;
@@ -23,9 +31,9 @@ public class ProductRepository {
     	OffsetDateTime now = OffsetDateTime.now();
     	
     	jdbcTemplate.update("INSERT INTO product(sku, name, aux1, aux2, category) VALUES (?, ?, ?, ?, ?)",
-    			"001", "Fuente agua para gato", "MCO202464293", "535353", "Mascotas");
+    			"001", "Peine Para Mascota", "MCO1854513980", "535353", "Mascotas");
     	jdbcTemplate.update("INSERT INTO product(sku, name, aux1, aux2, category) VALUES (?, ?, ?, ?, ?)",
-    			"002", "Dispensador condimentos", "MCO153516546", "616161", "Hogar");
+    			"002", "Kit Organizadores De Maleta", "MCO1388163341", "616161", "Hogar");
     	jdbcTemplate.update("INSERT INTO warehouse (name) VALUES (?)",
     			"Fontibon");
     	jdbcTemplate.update("INSERT INTO warehouse (name) VALUES (?)",
@@ -98,4 +106,42 @@ public class ProductRepository {
                     return tmp;
                 });
     }
+
+	public void uploadFile(String id, MultipartFile mpf) {
+		//Workbook workbook = nombre.endsWith(".xls") ? new HSSFWorkbook(archivo) : new XSSFWorkbook(archivo);
+		try (Workbook workbook = WorkbookFactory.create(mpf.getInputStream())){
+			Map<String, Double> map = new HashMap<>();
+			OffsetDateTime now = OffsetDateTime.now();
+			Sheet sheet = workbook.getSheetAt(0);
+			Iterator<Row> rowIterator = sheet.iterator();
+		    while (rowIterator.hasNext()) {
+		        Row row = rowIterator.next();
+		        try {
+		        	String code = row.getCell(16).getStringCellValue();
+					Double quantity = row.getCell(6).getNumericCellValue();
+		        	if(code.startsWith("MCO")) {
+		        		if(map.get(code) == null) {
+		        			map.put(code, 0D);
+		        		}
+		        		map.put(code, map.get(code) + quantity);
+		        	}
+				} catch (Exception e) {
+					//e.printStackTrace();
+				}
+		    }
+		    System.out.println("map: " + map);
+		    
+		    String sql = "INSERT INTO inventory_movement(fechahora, movement_type, notes, quantity, from_warehouse_id, product_id, to_warehouse_id, usuario_id)\n"
+		    		+ "VALUES (?, ?, ?, ?, ?, ?, ?, (SELECT id FROM product WHERE aux1 = ?))";
+		    
+		    for (Map.Entry<String, Double> entry : map.entrySet()) {
+		    	String code = entry.getKey();
+		    	Double quantity = entry.getValue();
+		    	jdbcTemplate.update(sql, now, MovementType.Venta.name(), "usuario1@gmail.com", quantity, 1, 1, 1, code);
+			}
+		    
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
 }

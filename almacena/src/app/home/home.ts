@@ -28,18 +28,20 @@ export class Home implements OnInit {
   onMLFileSelected(event: Event) {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (file) {
-    const formData = new FormData();
-    formData.append('file', file);
+      const formData = new FormData();
+      formData.append('file', file);
 
-    this.http.post('http://localhost:8080/api/uploadFile?id=ml', formData)
-      .subscribe({
-        next: (response) => {
-          console.log('Archivo subido correctamente:', response);
-        },
-        error: (error) => {
-          console.error('Error al subir el archivo:', error);
-        }
-      });
-  }
+      this.http.post('http://localhost:8080/api/uploadFile?id=ml', formData)
+        .subscribe({
+          next: (response) => {
+            console.log('Archivo subido correctamente:', response);
+            (event.target as HTMLInputElement).value = '';
+          },
+          error: (error) => {
+            console.error('Error al subir el archivo:', error);
+            (event.target as HTMLInputElement).value = '';
+          }
+        });
+    }
   }
 }
