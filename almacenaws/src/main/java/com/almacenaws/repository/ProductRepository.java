@@ -131,13 +131,13 @@ public class ProductRepository {
 		    }
 		    System.out.println("map: " + map);
 		    
-		    String sql = "INSERT INTO inventory_movement(fechahora, movement_type, notes, quantity, from_warehouse_id, product_id, to_warehouse_id, usuario_id)\n"
+		    String sql = "INSERT INTO inventory_movement(fechahora, movement_type, notes, quantity, from_warehouse_id, to_warehouse_id, usuario_id, product_id)\n"
 		    		+ "VALUES (?, ?, ?, ?, ?, ?, ?, (SELECT id FROM product WHERE aux1 = ?))";
 		    
 		    for (Map.Entry<String, Double> entry : map.entrySet()) {
 		    	String code = entry.getKey();
 		    	Double quantity = entry.getValue();
-		    	jdbcTemplate.update(sql, now, MovementType.Venta.name(), "usuario1@gmail.com", quantity, 1, 1, 1, code);
+		    	jdbcTemplate.update(sql, now, MovementType.Venta.name(), mpf.getOriginalFilename(), quantity, 1, 1, 1, code);
 			}
 		    
 		} catch (Exception e) {
