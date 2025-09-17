@@ -37,7 +37,7 @@ public class ProductService {
     	return productRepository.getInventoryMovement();
     }
 
-	public void uploadFile(String id, MultipartFile mpf) {
-		productRepository.uploadFile(id, mpf);
+	public Map<String, Integer> uploadFile(String id, MultipartFile mpf) {
+		return productRepository.uploadFile(id, mpf);
 	}
 }

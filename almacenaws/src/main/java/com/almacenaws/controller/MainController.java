@@ -52,8 +52,7 @@ public class MainController {
     }
     
     @PostMapping(path = "uploadFile")
-    public void uploadFile(@RequestParam("id") String id, @RequestParam("file") MultipartFile mpf) {
-    	productService.uploadFile(id, mpf);
-    	ResponseEntity.ok("Movimiento Registrado");
+    public Map<String, Integer> uploadFile(@RequestParam("id") String id, @RequestParam("file") MultipartFile mpf) {
+    	return productService.uploadFile(id, mpf);
     }
 }

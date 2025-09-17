@@ -107,8 +107,10 @@ public class ProductRepository {
                 });
     }
 
-	public void uploadFile(String id, MultipartFile mpf) {
-		//Workbook workbook = nombre.endsWith(".xls") ? new HSSFWorkbook(archivo) : new XSSFWorkbook(archivo);
+	public Map<String, Integer> uploadFile(String id, MultipartFile mpf) {
+		Map<String, Integer> response = new HashMap<>();
+		response.put("success", 0);
+		response.put("errors", 0);
 		try (Workbook workbook = WorkbookFactory.create(mpf.getInputStream())){
 			Map<String, Double> map = new HashMap<>();
 			OffsetDateTime now = OffsetDateTime.now();
@@ -129,19 +131,25 @@ public class ProductRepository {
 					//e.printStackTrace();
 				}
 		    }
-		    System.out.println("map: " + map);
-		    
-		    String sql = "INSERT INTO inventory_movement(fechahora, movement_type, notes, quantity, from_warehouse_id, to_warehouse_id, usuario_id, product_id)\n"
+
+		    String sqlInv = "INSERT INTO inventory_movement(fechahora, movement_type, notes, quantity, from_warehouse_id, to_warehouse_id, usuario_id, product_id)\n"
 		    		+ "VALUES (?, ?, ?, ?, ?, ?, ?, (SELECT id FROM product WHERE aux1 = ?))";
-		    
+		    String sqlLog = "INSERT INTO register(fechahora, information) VALUES (?, ?)";
+		    		    
 		    for (Map.Entry<String, Double> entry : map.entrySet()) {
 		    	String code = entry.getKey();
 		    	Double quantity = entry.getValue();
-		    	jdbcTemplate.update(sql, now, MovementType.Venta.name(), mpf.getOriginalFilename(), quantity, 1, 1, 1, code);
+		    	try {
+		    		jdbcTemplate.update(sqlInv, now, MovementType.Venta.name(), mpf.getOriginalFilename(), quantity, 1, 1, 1, code);
+		    		response.put("success", response.get("success") + 1);
+				} catch (Exception e) {
+					jdbcTemplate.update(sqlLog, now, e.getMessage());
+					response.put("errors", response.get("errors") + 1);
+				}
 			}
-		    
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
+		return response;
 	}
 }

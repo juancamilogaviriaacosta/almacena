@@ -20,7 +20,7 @@ public class InventoryMovement {
 	@Column
 	private int id;
 	
-	@ManyToOne
+	@ManyToOne(optional = false)
 	private Product product;
 	
 	@ManyToOne
