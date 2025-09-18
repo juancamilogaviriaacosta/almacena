@@ -33,11 +33,19 @@ public class ProductService {
     	return productRepository.getInventory();
     }
     
+    public List<Map<String, Object>> getWarehouse () {
+    	return productRepository.getWarehouse();
+    }
+    
+    public List<Map<String, Object>> getRegister () {
+    	return productRepository.getRegister();
+    }
+    
     public List<InventoryMovement> getInventoryMovement () {
     	return productRepository.getInventoryMovement();
     }
 
-	public Map<String, Integer> uploadFile(String id, MultipartFile mpf) {
-		return productRepository.uploadFile(id, mpf);
+	public Map<String, Integer> uploadFile(String fileId, Integer warehouseId, MultipartFile mpf) {
+		return productRepository.uploadFile(fileId, warehouseId, mpf);
 	}
 }

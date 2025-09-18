@@ -1,1 +1,32 @@
-<p>movements works!</p>
+<!-- Contenido principal -->
+<header class="hero">
+  <h1>Bodegas</h1>
+  <p>La mejor solución para tu negocio, rápida y segura.</p>
+  
+  <table cellpadding="8" cellspacing="0" style="width:100%; border-collapse:collapse">
+    <thead>
+        <tr>
+            <th>Código</th>
+            <th>Nombre</th>
+            <th>Opciones</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @for (p of table; track p) {
+        <tr>
+            <td>{{ p.id }}</td>
+            <td>{{ p.name }}</td>
+            <td class="div-left">
+                <button id="ml" (click)="onMLClick('ml', p.id)">Subir archivo ML</button>
+                <input type="file" #mlInput style="display:none" (change)="onMLFileSelected($event)">
+                <button id="dr">Subir archivo Dropi</button>
+            </td>
+        </tr>
+        }
+    </tbody>
+</table>
+
+<!--<button>Comenzar</button>-->
+
+</header>

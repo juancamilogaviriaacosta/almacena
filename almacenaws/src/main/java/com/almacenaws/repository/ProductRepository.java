@@ -81,16 +81,25 @@ public class ProductRepository {
     	String sql = "SELECT pro.sku, pro.aux1, pro.aux2, pro.name, pro.category, inv.quantity, war.name as warehouse\n"
     			+ "FROM product pro\n"
     			+ "LEFT JOIN inventory inv ON inv.product_id = pro.id\n"
-    			+ "LEFT JOIN warehouse war ON inv.warehouse_id = war.id";
+    			+ "LEFT JOIN warehouse war ON inv.warehouse_id = war.id\n"
+    			+ "ORDER BY pro.name";
     	List<Map<String, Object>> queryForList = jdbcTemplate.queryForList(sql);
     	return queryForList;
 	}
     
-    public List<InventoryMovement> getInventoryMovement() {
-    	/*List<Map<String, Object>> queryForList = jdbcTemplate.queryForList("SELECT * FROM inventory_movement");
-    	System.out.println(Arrays.deepToString(queryForList.toArray()));
-    	return queryForList;*/
-    	
+    public List<Map<String, Object>> getWarehouse() {
+    	String sql = "SELECT * FROM warehouse ORDER BY id";
+    	List<Map<String, Object>> queryForList = jdbcTemplate.queryForList(sql);
+    	return queryForList;
+	}
+    
+    public List<Map<String, Object>> getRegister() {
+    	String sql = "SELECT * FROM register ORDER BY fechahora";
+    	List<Map<String, Object>> queryForList = jdbcTemplate.queryForList(sql);
+    	return queryForList;
+	}
+    
+    public List<InventoryMovement> getInventoryMovement() {    	
     	return jdbcTemplate.query("SELECT * FROM inventory_movement",
                 (rs, rowNum) -> {
                 	InventoryMovement tmp = new InventoryMovement();
@@ -107,7 +116,7 @@ public class ProductRepository {
                 });
     }
 
-	public Map<String, Integer> uploadFile(String id, MultipartFile mpf) {
+	public Map<String, Integer> uploadFile(String fileId, Integer warehouseId, MultipartFile mpf) {
 		Map<String, Integer> response = new HashMap<>();
 		response.put("success", 0);
 		response.put("errors", 0);
@@ -132,15 +141,22 @@ public class ProductRepository {
 				}
 		    }
 
-		    String sqlInv = "INSERT INTO inventory_movement(fechahora, movement_type, notes, quantity, from_warehouse_id, to_warehouse_id, usuario_id, product_id)\n"
-		    		+ "VALUES (?, ?, ?, ?, ?, ?, ?, (SELECT id FROM product WHERE aux1 = ?))";
+		    String sqlInv = "INSERT INTO inventory_movement(fechahora, movement_type, notes, quantity, from_warehouse_id, usuario_id, product_id)\n"
+		    		+ "VALUES (?, ?, ?, ?, ?, ?, (SELECT id FROM product WHERE aux1 = ?))";
 		    String sqlLog = "INSERT INTO register(fechahora, information) VALUES (?, ?)";
+		    String sqlSub = "UPDATE inventory inv\n"
+		    		+ "SET quantity = inv.quantity - ?\n"
+		    		+ "FROM product pro\n"
+		    		+ "WHERE inv.product_id = pro.id\n"
+		    		+ "AND pro.aux1 = ?\n"
+		    		+ "AND inv.warehouse_id = ?";
 		    		    
 		    for (Map.Entry<String, Double> entry : map.entrySet()) {
-		    	String code = entry.getKey();
+		    	String aux1 = entry.getKey();
 		    	Double quantity = entry.getValue();
 		    	try {
-		    		jdbcTemplate.update(sqlInv, now, MovementType.Venta.name(), mpf.getOriginalFilename(), quantity, 1, 1, 1, code);
+		    		jdbcTemplate.update(sqlInv, now, MovementType.Venta.name(), mpf.getOriginalFilename(), quantity, warehouseId, 1, aux1);
+		    		jdbcTemplate.update(sqlSub, quantity, aux1, warehouseId);
 		    		response.put("success", response.get("success") + 1);
 				} catch (Exception e) {
 					jdbcTemplate.update(sqlLog, now, e.getMessage());

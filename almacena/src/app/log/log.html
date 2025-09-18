@@ -1,0 +1,26 @@
+<!-- Contenido principal -->
+<header class="hero">
+  <h1>Errores</h1>
+  <p>La mejor solución para tu negocio, rápida y segura.</p>
+  
+  <table cellpadding="8" cellspacing="0" style="width:100%; border-collapse:collapse">
+    <thead>
+        <tr>
+            <th>Código</th>
+            <th>Fecha</th>
+            <th>Descripción</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @for (p of table; track p) {
+        <tr>
+            <td>{{ p.id }}</td>
+            <td>{{ p.fechahora | date:'dd/MM/yyyy HH:mm:ss'}}</td>
+            <td>{{ p.information }}</td>
+        </tr>
+        }
+    </tbody>
+</table>
+
+</header>

@@ -2,13 +2,6 @@
 <header class="hero">
   <h1>Bienvenido a Almacena</h1>
   <p>La mejor solución para tu negocio, rápida y segura.</p>
-
-  <div class="div-left">
-    <button id="ml" (click)="onMLClick()">Subir archivo ML</button>
-    <input type="file" #mlInput style="display:none" (change)="onMLFileSelected($event)">
-    <button id="dr">Subir archivo Dropi</button>
-  </div>
-  
   
   <table cellpadding="8" cellspacing="0" style="width:100%; border-collapse:collapse">
     <thead>
@@ -24,7 +17,7 @@
     </thead>
 
     <tbody>
-        @for (p of inventory; track p) {
+        @for (p of table; track p) {
         <tr>
             <td>{{ p.sku }}</td>
             <td>{{ p.aux1 }}</td>

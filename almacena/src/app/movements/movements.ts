@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, ViewChild} from '@angular/core';
 
 @Component({
   selector: 'app-movements',
@@ -9,16 +9,44 @@ import { Component, OnInit } from '@angular/core';
 })
 export class Movements implements OnInit {
 
-  products:any;
+  @ViewChild('mlInput') mlInput: any;
+  table: any;
+  fileId: string = '';
+  warehouseId: number = 0;
 
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
-    let products = this.http.get('http://localhost:8080/api/products', { responseType: 'json' });
-    products.subscribe(products => {
-      console.log('products: ' + products);
-      this.products = products;
+    let tmp = this.http.get('http://localhost:8080/api/getWarehouse', { responseType: 'json' });
+    tmp.subscribe(table => {
+      this.table = table;
     });
+  }
+
+  onMLClick(fileId: string, warehouseId: number) {
+    this.fileId = fileId;
+    this.warehouseId = warehouseId;
+    this.mlInput.nativeElement.click();
+  }
+
+  onMLFileSelected(event: Event) {
+    const file = (event.target as HTMLInputElement).files?.[0];
+    if (file) {
+      const formData = new FormData();
+      formData.append('file', file);
+
+      this.http.post('http://localhost:8080/api/uploadFile?fileId=' + this.fileId + '&warehouseId=' + this.warehouseId, formData)
+        .subscribe({
+          next: (response) => {
+            console.log('Archivo subido correctamente:', response);
+            (event.target as HTMLInputElement).value = '';
+          },
+          error: (error) => {
+            console.error('Error al subir el archivo:', error);
+            (event.target as HTMLInputElement).value = '';
+          }
+        });
+    }
   }
 
 }

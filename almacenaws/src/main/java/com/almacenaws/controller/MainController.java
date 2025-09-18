@@ -46,13 +46,24 @@ public class MainController {
         return productService.getInventory();
     }
     
+    @GetMapping(path = "getWarehouse")
+    public List<Map<String, Object>> getWarehouse() {
+        return productService.getWarehouse();
+    }
+    
+    @GetMapping(path = "getRegister")
+    public List<Map<String, Object>> getRegister() {
+        return productService.getRegister();
+    }
+    
     @GetMapping(path = "getInventoryMovement")
     public List<InventoryMovement> getInventoryMovement() {
         return productService.getInventoryMovement();
     }
     
     @PostMapping(path = "uploadFile")
-    public Map<String, Integer> uploadFile(@RequestParam("id") String id, @RequestParam("file") MultipartFile mpf) {
-    	return productService.uploadFile(id, mpf);
+    public Map<String, Integer> uploadFile(@RequestParam("fileId") String fileId,
+    		@RequestParam("warehouseId") Integer warehouseId, @RequestParam("file") MultipartFile mpf) {
+    	return productService.uploadFile(fileId, warehouseId, mpf);
     }
 }
