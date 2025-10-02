@@ -2,6 +2,8 @@ package com.almacenaws.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -28,6 +30,10 @@ public class Product {
 	
 	@Column
 	private String category;
+	
+	@Column
+	@Enumerated(EnumType.STRING)
+	private Status status;
 
 	public Product() {
 	}
@@ -82,5 +88,13 @@ public class Product {
 
 	public void setCategory(String category) {
 		this.category = category;
+	}
+
+	public Status getStatus() {
+		return status;
+	}
+
+	public void setStatus(Status status) {
+		this.status = status;
 	}
 }

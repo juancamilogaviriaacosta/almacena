@@ -1,6 +1,7 @@
 package com.almacenaws.repository;
 
 import java.time.OffsetDateTime;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -11,6 +12,7 @@ import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.ColumnMapRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.multipart.MultipartFile;
@@ -18,6 +20,7 @@ import org.springframework.web.multipart.MultipartFile;
 import com.almacenaws.model.InventoryMovement;
 import com.almacenaws.model.MovementType;
 import com.almacenaws.model.Product;
+import com.almacenaws.model.Status;
 import com.almacenaws.model.Usuario;
 import com.almacenaws.model.Warehouse;
 
@@ -30,10 +33,12 @@ public class ProductRepository {
     public void initDatabase() {
     	OffsetDateTime now = OffsetDateTime.now();
     	
-    	jdbcTemplate.update("INSERT INTO product(sku, name, aux1, aux2, category) VALUES (?, ?, ?, ?, ?)",
-    			"001", "Peine Para Mascota", "MCO1854513980", "535353", "Mascotas");
-    	jdbcTemplate.update("INSERT INTO product(sku, name, aux1, aux2, category) VALUES (?, ?, ?, ?, ?)",
-    			"002", "Kit Organizadores De Maleta", "MCO1388163341", "616161", "Hogar");
+    	jdbcTemplate.update("INSERT INTO product(sku, name, aux1, aux2, category, status) VALUES (?, ?, ?, ?, ?, ?)",
+    			"001", "Peine Para Mascota", "MCO2024642932", "010101", "Mascotas", "Activo");
+    	jdbcTemplate.update("INSERT INTO product(sku, name, aux1, aux2, category, status) VALUES (?, ?, ?, ?, ?, ?)",
+    			"002", "Kit Organizadores De Maleta", "MCO1388163341", "020202", "Hogar", "Activo");
+    	jdbcTemplate.update("INSERT INTO product(sku, name, aux1, aux2, category, status) VALUES (?, ?, ?, ?, ?, ?)",
+    			"003", "Cepillo automatico a vapor", "MCO2813643866", "030303", "Hogar", "Activo");    	
     	jdbcTemplate.update("INSERT INTO warehouse (name) VALUES (?)",
     			"Fontibon");
     	jdbcTemplate.update("INSERT INTO warehouse (name) VALUES (?)",
@@ -121,7 +126,7 @@ public class ProductRepository {
 		response.put("success", 0);
 		response.put("errors", 0);
 		try (Workbook workbook = WorkbookFactory.create(mpf.getInputStream())){
-			Map<String, Double> map = new HashMap<>();
+			Map<String, Object[]> map = new HashMap<>();
 			OffsetDateTime now = OffsetDateTime.now();
 			Sheet sheet = workbook.getSheetAt(0);
 			Iterator<Row> rowIterator = sheet.iterator();
@@ -129,18 +134,19 @@ public class ProductRepository {
 		        Row row = rowIterator.next();
 		        try {
 		        	String code = row.getCell(16).getStringCellValue();
-					Double quantity = row.getCell(6).getNumericCellValue();
+		        	String name = row.getCell(17).getStringCellValue();
+					Integer quantity = ((Double) row.getCell(6).getNumericCellValue()).intValue();
 		        	if(code.startsWith("MCO")) {
 		        		if(map.get(code) == null) {
-		        			map.put(code, 0D);
+		        			map.put(code, new Object[] {0, name});
 		        		}
-		        		map.put(code, map.get(code) + quantity);
+		        		map.put(code, new Object[] {(Integer) map.get(code)[0] + quantity, name});
 		        	}
 				} catch (Exception e) {
 					//e.printStackTrace();
 				}
 		    }
-
+		    
 		    String sqlInv = "INSERT INTO inventory_movement(fechahora, movement_type, notes, quantity, from_warehouse_id, usuario_id, product_id)\n"
 		    		+ "VALUES (?, ?, ?, ?, ?, ?, (SELECT id FROM product WHERE aux1 = ?))";
 		    String sqlLog = "INSERT INTO register(fechahora, information) VALUES (?, ?)";
@@ -150,13 +156,47 @@ public class ProductRepository {
 		    		+ "WHERE inv.product_id = pro.id\n"
 		    		+ "AND pro.aux1 = ?\n"
 		    		+ "AND inv.warehouse_id = ?";
-		    		    
-		    for (Map.Entry<String, Double> entry : map.entrySet()) {
-		    	String aux1 = entry.getKey();
-		    	Double quantity = entry.getValue();
+		    String placeholders = String.join(",", Collections.nCopies(map.keySet().size(), "?"));
+		    String sqlVal = "SELECT pro.id, inv.quantity, pro.aux1\n"
+		    		+ "FROM product pro\n"
+		    		+ "LEFT JOIN inventory inv ON (inv.product_id = pro.id AND inv.warehouse_id = ?)\n"
+		    		+ "WHERE inv.quantity IS NULL\n"
+		    		+ "AND pro.aux1 IN (" + placeholders + ")";
+		    String sqlNewProduct = "INSERT INTO product(aux1, name, status) VALUES (?, ?, ?) RETURNING id";
+		    String sqlNewInv = "INSERT INTO inventory(quantity, product_id, warehouse_id) VALUES (?, ?, ?)";
+		    
+		    
+		    String sqlProducts = "SELECT aux1 FROM product WHERE aux1 IN (" + placeholders + ")";
+		    List<Map<String, Object>> products = jdbcTemplate.query(sqlProducts, new ColumnMapRowMapper(), map.keySet().toArray());
+		    for (String aux1 : map.keySet()) {
+		    	boolean isInDb = false;
+		    	for (Map<String, Object> tmp : products) {
+					if(tmp.get("aux1").equals(aux1)) {
+						isInDb = true;
+					}
+				}
+		    	if(!isInDb) {
+		    		String name = (String) map.get(aux1)[1];
+		    		List<Map<String, Object>> newProduct = jdbcTemplate.queryForList(sqlNewProduct, aux1, name, Status.Incompleto.name());
+					jdbcTemplate.update(sqlNewInv, 0, newProduct.get(0).get("id") , warehouseId);
+		    	}
+			}
+		    
+			Object[] array = new Object[map.keySet().size() + 1];
+			array[0] = warehouseId;
+			System.arraycopy(map.keySet().toArray(), 0, array, 1, map.keySet().size());				    
+		    List<Map<String, Object>> inventory = jdbcTemplate.query(sqlVal, new ColumnMapRowMapper(), array);
+		    for (Map<String, Object> tmp : inventory) {
+				jdbcTemplate.update(sqlNewInv, 0, tmp.get("id"), warehouseId);
+			}		    
+		    
+		    for (Map.Entry<String, Object[]> entry : map.entrySet()) {
+		    	String aux1Excel = entry.getKey();
+		    	Integer quantityExcel = (Integer) entry.getValue()[0];		    	
+		    	
 		    	try {
-		    		jdbcTemplate.update(sqlInv, now, MovementType.Venta.name(), mpf.getOriginalFilename(), quantity, warehouseId, 1, aux1);
-		    		jdbcTemplate.update(sqlSub, quantity, aux1, warehouseId);
+		    		jdbcTemplate.update(sqlInv, now, MovementType.Venta.name(), mpf.getOriginalFilename(), quantityExcel, warehouseId, 1, aux1Excel);
+		    		jdbcTemplate.update(sqlSub, quantityExcel, aux1Excel, warehouseId);
 		    		response.put("success", response.get("success") + 1);
 				} catch (Exception e) {
 					jdbcTemplate.update(sqlLog, now, e.getMessage());
