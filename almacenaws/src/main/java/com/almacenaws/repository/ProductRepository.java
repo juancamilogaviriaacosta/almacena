@@ -71,7 +71,24 @@ public class ProductRepository {
     			"Traslado", "Traslado de F a C", 45, now, 1, 1, 2, 1);
     	
     }
+    
+    public void updateProduct(Product product) {
+    	String sqlProduct = "UPDATE product SET category=?, name=?, sku=?, status=? WHERE id = ?";
+    	jdbcTemplate.update(sqlProduct,  product.getCategory(), product.getName(), product.getSku(), product.getStatus().name(), product.getId());
+    	//String sqlCodes = "";
+    }
 
+    public Map<String, Object> getProduct(Integer id) {
+    	String sql = "SELECT pro.id, pro.category, pro.name, pro.sku, pro.status, STRING_AGG(cod.code, ';') AS codes\n"
+    			+ "FROM product pro\n"
+    			+ "LEFT JOIN code cod ON pro.id = cod.product_id\n"
+    			+ "WHERE pro.id = ?\n"
+    			+ "GROUP BY 1, 2, 3, 4, 5\n"
+    			+ "ORDER BY 1";
+        Map<String, Object> queryForList = jdbcTemplate.queryForList(sql, id).get(0);
+        return queryForList;
+    }
+    
     public List<Map<String, Object>> getProducts() {
     	String sql = "SELECT pro.id, pro.category, pro.name, pro.sku, pro.status, STRING_AGG(cod.code, ';') AS codes\n"
     			+ "FROM product pro\n"

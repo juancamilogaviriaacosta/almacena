@@ -56,17 +56,23 @@
 }
 
 .hero button {
-  background-color: #0d6efd;
-  color: white;
+  background: linear-gradient(90deg, #0d6efd 0%, #4f8cff 100%);
+  color: #fff;
   border: none;
-  padding: 0.75rem 1.5rem;
-  border-radius: 0.3rem;
-  font-size: 1rem;
+  padding: 0.3rem 1rem;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 600;
   cursor: pointer;
+  box-shadow: 0 4px 16px rgba(13, 110, 253, 0.15);
+  transition: background 0.3s, transform 0.2s, box-shadow 0.3s;
+  letter-spacing: 0.5px;
 }
 
 .hero button:hover {
-  background-color: #0b5ed7;
+  background: linear-gradient(90deg, #2563eb 0%, #60a5fa 100%);
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 8px 24px rgba(13, 110, 253, 0.18);
 }
 
 .div-left {
@@ -78,7 +84,7 @@
 }
 
 .div-left button {
-  margin: 5px;
+  margin: 1px;
 }
 
 /* Estilos base para la tabla */
@@ -150,4 +156,81 @@ table {
   border-radius: 8px;
   text-align: center;
   box-shadow: 0 2px 16px rgba(0,0,0,0.2);
+}
+
+.formulario {
+  max-width: 800px;
+  margin: 2rem auto;
+  background: #fff;
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+}
+
+.formulario h1 {
+  text-align: center;
+  margin-bottom: 2rem;
+  color: #2563eb;
+}
+
+.formulario form > div {
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+}
+
+.formulario label {
+  width: 120px;
+  text-align: right;
+  margin-right: 12px;
+  font-weight: 500;
+  color: #333;
+}
+
+.formulario input[type="text"] {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+
+.formulario button[type="submit"] {
+  width: 100%;
+  padding: 0.7rem;
+  background: linear-gradient(90deg, #0d6efd 0%, #4f8cff 100%);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: background 0.3s, box-shadow 0.3s;
+  box-shadow: 0 2px 8px rgba(13, 110, 253, 0.10);
+}
+
+.formulario button[type="submit"]:hover {
+  background: linear-gradient(90deg, #2563eb 0%, #60a5fa 100%);
+  box-shadow: 0 4px 16px rgba(13, 110, 253, 0.18);
+}
+
+.formulario button[type="button"] {
+  width: 100%;
+  padding: 0.7rem;
+  background: linear-gradient(90deg, #ff0000 0%, #9c3737 100%);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 1rem;
+  transition: background 0.3s, box-shadow 0.3s;
+  box-shadow: 0 2px 8px rgba(13, 110, 253, 0.10);
+}
+
+.formulario button[type="button"]:hover {
+  background: linear-gradient(90deg, #9c3737 0%, #ff0000 100%);
+  box-shadow: 0 4px 16px rgba(13, 110, 253, 0.18);
 }

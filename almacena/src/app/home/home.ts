@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
-import { SemicolonBreakPipe } from './semicolon-break.pipe';
+import { SemicolonBreakPipe } from '../pipes/semicolon-break.pipe';
 
 
 @Component({

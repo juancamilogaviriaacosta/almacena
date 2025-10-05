@@ -7,12 +7,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.almacenaws.model.InventoryMovement;
+import com.almacenaws.model.Product;
 import com.almacenaws.service.ProductService;
 
 @RestController
@@ -26,6 +28,17 @@ public class MainController {
     public ResponseEntity<String> initDatabase() {
         productService.initDatabase();
         return ResponseEntity.ok("Ok");
+    }
+    
+    @PostMapping(path = "updateProduct")
+    public ResponseEntity<String> updateProduct(@RequestBody Product product) {
+    	productService.updateProduct(product);
+    	return ResponseEntity.ok("Ok");
+    }
+    
+    @GetMapping(path = "getProduct")
+    public Map<String, Object> getProduct(@RequestParam("id") Integer id) {
+        return productService.getProduct(id);
     }
     
     @GetMapping(path = "getProducts")
