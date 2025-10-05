@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.almacenaws.model.InventoryMovement;
-import com.almacenaws.model.Product;
 import com.almacenaws.repository.ProductRepository;
 
 @Service
@@ -21,12 +20,8 @@ public class ProductService {
     	productRepository.initDatabase();
     }
     
-    public List<Product> getProducts() {
+    public List<Map<String, Object>> getProducts() {
         return productRepository.getProducts();
-    }
-
-    public void createProduct(Product product) {
-    	productRepository.createProduct(product);
     }
     
     public List<Map<String, Object>> getInventory () {

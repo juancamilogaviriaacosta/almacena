@@ -1,9 +1,11 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
+import { SemicolonBreakPipe } from './semicolon-break.pipe';
+
 
 @Component({
   selector: 'app-home',
-  imports: [],
+  imports: [SemicolonBreakPipe],
   templateUrl: './home.html',
   styleUrl: './home.css'
 })

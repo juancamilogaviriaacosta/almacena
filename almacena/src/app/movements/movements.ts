@@ -13,6 +13,7 @@ export class Movements implements OnInit {
   table: any;
   fileId: string = '';
   warehouseId: number = 0;
+  uploading = false;
 
   constructor(private http: HttpClient) {}
 
@@ -32,17 +33,18 @@ export class Movements implements OnInit {
   onMLFileSelected(event: Event) {
     const file = (event.target as HTMLInputElement).files?.[0];
     if (file) {
+      this.uploading = true;
       const formData = new FormData();
       formData.append('file', file);
 
       this.http.post('http://localhost:8080/api/uploadFile?fileId=' + this.fileId + '&warehouseId=' + this.warehouseId, formData)
         .subscribe({
           next: (response) => {
-            console.log('Archivo subido correctamente:', response);
+            this.uploading = false;
             (event.target as HTMLInputElement).value = '';
           },
           error: (error) => {
-            console.error('Error al subir el archivo:', error);
+            this.uploading = false;
             (event.target as HTMLInputElement).value = '';
           }
         });

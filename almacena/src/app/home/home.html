@@ -7,8 +7,7 @@
     <thead>
         <tr>
             <th>Sku</th>
-            <th>Código 1</th>
-            <th>Código 2</th>
+            <th>Códigos</th>
             <th>Producto</th>
             <th>Categoría</th>
             <th>Cantidad</th>
@@ -20,8 +19,7 @@
         @for (p of table; track p) {
         <tr>
             <td>{{ p.sku }}</td>
-            <td>{{ p.aux1 }}</td>
-            <td>{{ p.aux2 }}</td>
+            <td [innerHTML]="p.codes | semicolonBreak"></td>
             <td>{{ p.name }}</td>
             <td>{{ p.category }}</td>
             <td>{{ p.quantity }}</td>
