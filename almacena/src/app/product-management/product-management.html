@@ -1,31 +1,43 @@
 <div class="formulario">
   <h1>Identificador: {{ id }}</h1>
-  <form>
-    <div>
-      <label for="sku">SKU:</label>
-      <input type="text" id="sku" name="sku" [(ngModel)]="product.sku" />
-    </div>
-    <div>
-      <label for="codigo">Código:</label>
-      <input type="text" id="codigo" name="codigo" [(ngModel)]="product.codes" />
-    </div>
-    <div>
-      <label for="nombre">Nombre:</label>
-      <input type="text" id="nombre" name="nombre" [(ngModel)]="product.name" />
-    </div>
-    <div>
-      <label for="categoria">Categoría:</label>
-      <input type="text" id="categoria" name="categoria" [(ngModel)]="product.category" />
-    </div>
-    <div>
-      <label for="estado">Estado:</label>
-      <input type="text" id="estado" name="estado" [(ngModel)]="product.status" />
-    </div>
-    <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-      <button type="submit" (click)="save()">Guardar</button>
-      <button type="button" class="cancelar" (click)="cancel()">Cancelar</button>
-    </div>
-  </form>
+  @if (product) {
+    <form>
+      <div>
+        <label for="sku">SKU:</label>
+        <input type="text" id="sku" name="sku" [(ngModel)]="product.sku" />
+      </div>
+      <!--<div>
+        <label for="codigo">Código:</label>
+        <input type="text" id="codigo" name="codigo" [(ngModel)]="product.code" />
+      </div>-->
+      @for (tmp of product.code; let i = $index; track tmp) {
+        <div>
+          @if (i===0) {
+            <label>Códigos:</label>
+          } @else {
+            <label>&nbsp;</label>
+          }
+          <input type="text" value="{{tmp.code}}" /> 
+        </div>
+      }
+      <div>
+        <label for="nombre">Nombre:</label>
+        <input type="text" id="nombre" name="nombre" [(ngModel)]="product.name" />
+      </div>
+      <div>
+        <label for="categoria">Categoría:</label>
+        <input type="text" id="categoria" name="categoria" [(ngModel)]="product.category" />
+      </div>
+      <div>
+        <label for="estado">Estado:</label>
+        <input type="text" id="estado" name="estado" [(ngModel)]="product.status" />
+      </div>
+      <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+        <button type="submit" (click)="save()">Guardar</button>
+        <button type="button" class="cancelar" (click)="cancel()">Cancelar</button>
+      </div>
+    </form>
+  }
 </div>
 
 @if (uploading) {

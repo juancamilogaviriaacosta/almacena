@@ -23,6 +23,8 @@ import com.almacenaws.model.Product;
 import com.almacenaws.model.Status;
 import com.almacenaws.model.Usuario;
 import com.almacenaws.model.Warehouse;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Repository
 public class ProductRepository {
@@ -79,13 +81,21 @@ public class ProductRepository {
     }
 
     public Map<String, Object> getProduct(Integer id) {
-    	String sql = "SELECT pro.id, pro.category, pro.name, pro.sku, pro.status, STRING_AGG(cod.code, ';') AS codes\n"
+    	String sql = "SELECT pro.id, pro.category, pro.name, pro.sku, pro.status,\n"
+    			+ "'[' || STRING_AGG('{\"id\":' || cod.id || ', \"code\":\"' || cod.code || '\"}', ',') || ']' AS code\n"
     			+ "FROM product pro\n"
     			+ "LEFT JOIN code cod ON pro.id = cod.product_id\n"
     			+ "WHERE pro.id = ?\n"
     			+ "GROUP BY 1, 2, 3, 4, 5\n"
     			+ "ORDER BY 1";
         Map<String, Object> queryForList = jdbcTemplate.queryForList(sql, id).get(0);
+        String code = (String) queryForList.get("code");
+        try {
+        	List<Map<String, Object>> json = new ObjectMapper().readValue(code, new TypeReference<List<Map<String, Object>>>() {});
+        	queryForList.put("code", json);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
         return queryForList;
     }
     

@@ -17,7 +17,7 @@ export class ProductManagement {
 
   constructor(private http: HttpClient, private route: ActivatedRoute) {}
 
-  ngOnInit(): void {
+  ngOnInit() {
     this.id = this.route.snapshot.paramMap.get('id');
     let tmp = this.http.get('http://localhost:8080/api/getProduct?id=' + this.id, { responseType: 'json' });
     tmp.subscribe(product => {
