@@ -42,6 +42,10 @@ export class ProductManagement {
       });
   }
 
+  addCode() {
+    this.product.code.push({ code: '' });
+  }
+
   cancel() {
     window.history.back();
   }

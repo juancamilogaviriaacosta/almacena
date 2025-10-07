@@ -17,9 +17,13 @@
           } @else {
             <label>&nbsp;</label>
           }
-          <input type="text" value="{{tmp.code}}" /> 
+          <input type="text" name="code{{i}}" [(ngModel)]="tmp.code" />
         </div>
       }
+      <div class="circle-btn-container">
+        <label>&nbsp;</label>
+        <button type="button" class="circle-btn" (click)="addCode()">+</button>
+      </div>
       <div>
         <label for="nombre">Nombre:</label>
         <input type="text" id="nombre" name="nombre" [(ngModel)]="product.name" />
