@@ -13,7 +13,7 @@ public class Inventory {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column
-	private int id;
+	private Integer id;
 	
 	@ManyToOne
 	private Warehouse warehouse;

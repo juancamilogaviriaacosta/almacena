@@ -51,4 +51,8 @@ export class Movements implements OnInit {
     }
   }
 
+  manual(warehouseId: number) {
+    window.location.href = '/manual-movement/' + warehouseId;
+  }
+
 }

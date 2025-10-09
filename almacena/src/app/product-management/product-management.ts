@@ -14,6 +14,8 @@ export class ProductManagement {
   id:string | null = null;
   product: any;
   uploading = false;
+  mensajeError = '';
+
 
   constructor(private http: HttpClient, private route: ActivatedRoute) {}
 
@@ -22,23 +24,33 @@ export class ProductManagement {
     let tmp = this.http.get('http://localhost:8080/api/getProduct?id=' + this.id, { responseType: 'json' });
     tmp.subscribe(product => {
       this.product = product;
+      if(!(this.product.code)) {
+        this.product.code = [];
+        this.product.code.push({ code: '' });
+      }
     });
   }
   
   save() {
     this.uploading = true;
-    this.http.post('http://localhost:8080/api/updateProduct', this.product)
+    this.http.post('http://localhost:8080/api/updateProduct', this.product, { responseType: 'text' })
       .subscribe({
         next: (response) => {
           setTimeout(() => {
             this.uploading = false;
-            window.history.back();
-          }, 500);        },
+            if("Ok" === response) {
+              window.history.back();
+            } else {
+              this.mensajeError = response as string;
+            }
+          }, 500);
+        },
         error: (error) => {
           setTimeout(() => {
             this.uploading = false;
-            window.history.back();
-          }, 500);        }
+            this.mensajeError = JSON.stringify(error);
+          }, 500);
+        }
       });
   }
 
@@ -48,5 +60,9 @@ export class ProductManagement {
 
   cancel() {
     window.history.back();
+  }
+
+  closeError() {
+    this.mensajeError = '';
   }
 }

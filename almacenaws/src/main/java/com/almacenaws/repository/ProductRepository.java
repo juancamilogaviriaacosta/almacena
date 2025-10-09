@@ -1,11 +1,13 @@
 package com.almacenaws.repository;
 
 import java.time.OffsetDateTime;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
@@ -17,12 +19,11 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.almacenaws.model.Code;
 import com.almacenaws.model.InventoryMovement;
 import com.almacenaws.model.MovementType;
 import com.almacenaws.model.Product;
 import com.almacenaws.model.Status;
-import com.almacenaws.model.Usuario;
-import com.almacenaws.model.Warehouse;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -33,7 +34,7 @@ public class ProductRepository {
     private JdbcTemplate jdbcTemplate;
     
     public void initDatabase() {
-    	OffsetDateTime now = OffsetDateTime.now();
+    	/*OffsetDateTime now = OffsetDateTime.now();
     	
     	jdbcTemplate.update("INSERT INTO product(sku, name, category, status) VALUES (?, ?, ?, ?)",
     			"001", "Peine Para Mascota", "Mascotas", "Activo");
@@ -48,7 +49,7 @@ public class ProductRepository {
     	jdbcTemplate.update("INSERT INTO code(code, status, product_id) VALUES (?, ?, ?)",
     			"MCO1388163342", "Activo", 2);
     	jdbcTemplate.update("INSERT INTO code(code, status, product_id) VALUES (?, ?, ?)",
-    			"MCO2813643866", "Activo", 3);    	
+    			"MCO2813643866", "Activo", 3);*/    	
     	jdbcTemplate.update("INSERT INTO warehouse (name) VALUES (?)",
     			"Fontibon");
     	jdbcTemplate.update("INSERT INTO warehouse (name) VALUES (?)",
@@ -57,7 +58,7 @@ public class ProductRepository {
     			"cjimportacionesco@gmail.com", "Juan David", "DQ2R789Q234", "Admin", "cjimportacionesco");
     	jdbcTemplate.update("INSERT INTO usuario (email, name, password, role, user_name) VALUES (?, ?, ?, ?, ?)",
     			"usuariocj@gmail.com", "Cosmo", "DQ2R789Q234", "Operador", "cosmo");
-    	jdbcTemplate.update("INSERT INTO inventory (product_id, quantity, warehouse_id) VALUES (?, ?, ?)",
+    	/*jdbcTemplate.update("INSERT INTO inventory (product_id, quantity, warehouse_id) VALUES (?, ?, ?)",
     			1, 700, 1);
     	jdbcTemplate.update("INSERT INTO inventory (product_id, quantity, warehouse_id) VALUES (?, ?, ?)",
     			1, 100, 2);
@@ -70,14 +71,49 @@ public class ProductRepository {
     	jdbcTemplate.update("INSERT INTO inventory_movement(movement_type, notes, quantity, fechahora, from_warehouse_id, product_id, to_warehouse_id, usuario_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     			"Salida", "Venta ML", 30, now, 2, 2, null, 1);
     	jdbcTemplate.update("INSERT INTO inventory_movement(movement_type, notes, quantity, fechahora, from_warehouse_id, product_id, to_warehouse_id, usuario_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-    			"Traslado", "Traslado de F a C", 45, now, 1, 1, 2, 1);
+    			"Traslado", "Traslado de F a C", 45, now, 1, 1, 2, 1);*/
     	
     }
     
-    public void updateProduct(Product product) {
-    	String sqlProduct = "UPDATE product SET category=?, name=?, sku=?, status=? WHERE id = ?";
-    	jdbcTemplate.update(sqlProduct,  product.getCategory(), product.getName(), product.getSku(), product.getStatus().name(), product.getId());
-    	//String sqlCodes = "";
+    public String updateProduct(Product product) {
+    	String response = "";
+    	List<String> codes = product.getCode()
+    			.stream()
+    			.map(Code::getCode)
+    			.filter(Objects::nonNull)
+    			.filter(code -> !code.trim().isEmpty()).toList();
+    	List<String> names = new ArrayList<>();
+    	if(!codes.isEmpty()) {
+    		String placeholders = String.join(",", Collections.nCopies(codes.size(), "?"));
+        	String sqlCodes = "SELECT DISTINCT pro.name\n"
+        			+ "FROM code cod\n"
+        			+ "INNER JOIN product pro ON cod.product_id = pro.id\n"
+        			+ "WHERE 1 = 1\n"
+        			+ "AND cod.code IN ("+ placeholders +")\n"
+    				+ "AND pro.id != ?";
+        	List<Object> codesToQuery = new ArrayList<>(codes);
+        	codesToQuery.add(product.getId());
+        	names = jdbcTemplate.queryForList(sqlCodes, String.class, codesToQuery.toArray());
+        	if(!names.isEmpty()) {
+	        	response = "Código duplicado en:<br/>";
+	    		for (String tmp : names) {
+	    			response = response + tmp + "<br/>";
+	    		}
+        	}
+    	}
+    	
+    	if(names.isEmpty()) {
+			String newCodes = "INSERT INTO code(code, status, product_id) VALUES (?, ?, ?)";
+			String sqlProduct = "UPDATE product SET category=?, name=?, sku=?, status=? WHERE id = ?";
+			String deleteCodes = "DELETE FROM code WHERE product_id = ?";
+	    	jdbcTemplate.update(sqlProduct, product.getCategory(), product.getName(), product.getSku(), product.getStatus().name(), product.getId());
+	    	jdbcTemplate.update(deleteCodes, product.getId());
+	    	for (String tmp : codes) {
+	    		jdbcTemplate.update(newCodes, tmp, Status.Activo.name(), product.getId());
+			}
+	    	response = "Ok";
+    	}
+    	return response;
     }
 
     public Map<String, Object> getProduct(Integer id) {
@@ -91,8 +127,16 @@ public class ProductRepository {
         Map<String, Object> queryForList = jdbcTemplate.queryForList(sql, id).get(0);
         String code = (String) queryForList.get("code");
         try {
-        	List<Map<String, Object>> json = new ObjectMapper().readValue(code, new TypeReference<List<Map<String, Object>>>() {});
-        	queryForList.put("code", json);
+        	
+        	if(code != null) {
+        		List<Map<String, Object>> json = new ObjectMapper().readValue(code, new TypeReference<List<Map<String, Object>>>() {});
+            	queryForList.put("code", json);        	
+        	} else {
+        		List<Map<String, Object>> codes = new ArrayList<>();
+        		Map<String, Object> blank = new HashMap<>();
+				codes.add(blank);
+        		queryForList.put("code", codes);
+        	}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -138,14 +182,14 @@ public class ProductRepository {
                 (rs, rowNum) -> {
                 	InventoryMovement tmp = new InventoryMovement();
                 	tmp.setId(rs.getInt("id"));
-                	tmp.setProduct(new Product(rs.getInt("product_id")));
-                	tmp.setFromWarehouse(new Warehouse(rs.getInt("from_warehouse_id")));
-                	tmp.setToWarehouse(new Warehouse(rs.getInt("to_warehouse_id")));
+                	//tmp.setProduct(new Product(rs.getInt("product_id")));
+                	//tmp.setFromWarehouse(new Warehouse(rs.getInt("from_warehouse_id")));
+                	//tmp.setToWarehouse(new Warehouse(rs.getInt("to_warehouse_id")));
                 	tmp.setQuantity(rs.getInt("quantity"));
                 	tmp.setMovementType(MovementType.valueOf(rs.getString("movement_type")));
                 	tmp.setFechahora(rs.getObject("fechahora", OffsetDateTime.class));
                 	tmp.setNotes(rs.getString("notes"));
-                	tmp.setUsuario(new Usuario(rs.getInt("usuario_id")));
+                	//tmp.setUsuario(new Usuario(rs.getInt("usuario_id")));
                     return tmp;
                 });
     }
@@ -206,14 +250,14 @@ public class ProductRepository {
 		    for (String excelCode : map.keySet()) {
 		    	boolean isInDb = false;
 		    	for (Map<String, Object> tmp : products) {
-					if(((String) tmp.get("codes")).contains(excelCode)) {
+					if(tmp.get("codes") != null && ((String) tmp.get("codes")).contains(excelCode)) {
 						isInDb = true;
 					}
 				}
 		    	if(!isInDb) {
 		    		String name = (String) map.get(excelCode)[1];
 		    		List<Map<String, Object>> newProduct = jdbcTemplate.queryForList(sqlNewProduct, name, Status.Incompleto.name());
-		    		jdbcTemplate.update(sqlNewCode, excelCode, Status.Incompleto.name() ,newProduct.get(0).get("id"));
+		    		jdbcTemplate.update(sqlNewCode, excelCode, Status.Activo.name() ,newProduct.get(0).get("id"));
 					jdbcTemplate.update(sqlNewInventory, 0, newProduct.get(0).get("id"), warehouseId);
 		    	}
 			}

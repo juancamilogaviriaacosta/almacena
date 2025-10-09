@@ -6,10 +6,6 @@
         <label for="sku">SKU:</label>
         <input type="text" id="sku" name="sku" [(ngModel)]="product.sku" />
       </div>
-      <!--<div>
-        <label for="codigo">Código:</label>
-        <input type="text" id="codigo" name="codigo" [(ngModel)]="product.code" />
-      </div>-->
       @for (tmp of product.code; let i = $index; track tmp) {
         <div>
           @if (i===0) {
@@ -47,7 +43,18 @@
 @if (uploading) {
     <div class="modal">
     <div class="modal-content">
-        <img src="uploading.gif" alt="Subiendo..." style="height:48px;display:block;margin:auto;">
+      <img src="uploading.gif" alt="Subiendo..." style="height:48px;display:block;margin:auto;">
+    </div>
+    </div>
+}
+
+@if (mensajeError !== '') {
+    <div class="modal">
+    <div class="modal-content">
+      <h3>Error</h3>
+      <p [innerHTML]="mensajeError"></p>
+      <br/>
+      <button type="button" class="cancelar" (click)="closeError()">Cerrar</button>
     </div>
     </div>
 }

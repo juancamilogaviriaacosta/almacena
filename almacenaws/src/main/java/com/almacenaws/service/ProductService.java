@@ -21,8 +21,8 @@ public class ProductService {
     	productRepository.initDatabase();
     }
     
-    public void updateProduct(Product product) {
-    	productRepository.updateProduct(product);
+    public String updateProduct(Product product) {
+    	return productRepository.updateProduct(product);
     }
     
     public Map<String, Object> getProduct(Integer id) {

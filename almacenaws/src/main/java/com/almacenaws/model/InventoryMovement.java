@@ -1,6 +1,7 @@
 package com.almacenaws.model;
 
 import java.time.OffsetDateTime;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -18,7 +19,7 @@ public class InventoryMovement {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column
-	private int id;
+	private Integer id;
 	
 	@ManyToOne(optional = false)
 	private Product product;
@@ -45,19 +46,12 @@ public class InventoryMovement {
 	
 	@ManyToOne
 	private Usuario usuario;
-	
-	public InventoryMovement() {
-	}
 
-	public InventoryMovement(int id) {
-		this.id = id;
-	}
-
-	public int getId() {
+	public Integer getId() {
 		return id;
 	}
 
-	public void setId(int id) {
+	public void setId(Integer id) {
 		this.id = id;
 	}
 
@@ -123,5 +117,5 @@ public class InventoryMovement {
 
 	public void setUsuario(Usuario usuario) {
 		this.usuario = usuario;
-	}
+	}	
 }

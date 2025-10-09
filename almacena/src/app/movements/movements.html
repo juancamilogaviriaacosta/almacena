@@ -19,8 +19,11 @@
             <td>{{ p.name }}</td>
             <td class="div-left">
                 <button id="ml" (click)="onMLClick('ml', p.id)">Subir archivo ML</button>
+                &nbsp;
                 <input type="file" #mlInput style="display:none" (change)="onMLFileSelected($event)">
                 <button id="dr">Subir archivo Dropi</button>
+                &nbsp;
+                <button id="manual" (click)="manual(p.id)">Manual</button>
             </td>
         </tr>
         }

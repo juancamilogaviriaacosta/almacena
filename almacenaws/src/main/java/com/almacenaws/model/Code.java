@@ -15,9 +15,9 @@ public class Code {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column
-	private int id;
+	private Integer id;
 	
-	@Column
+	@Column(unique = true)
 	private String code;
 	
 	@Column
@@ -27,11 +27,11 @@ public class Code {
 	@ManyToOne
 	private Product product;
 
-	public int getId() {
+	public Integer getId() {
 		return id;
 	}
 
-	public void setId(int id) {
+	public void setId(Integer id) {
 		this.id = id;
 	}
 

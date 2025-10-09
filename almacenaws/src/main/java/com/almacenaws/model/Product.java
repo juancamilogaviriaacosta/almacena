@@ -17,7 +17,7 @@ public class Product {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column
-	private int id;
+	private Integer id;
 	
 	@Column
 	private String sku;
@@ -35,18 +35,11 @@ public class Product {
 	@Enumerated(EnumType.STRING)
 	private Status status;
 
-	public Product() {
-	}
-	
-	public Product(int id) {
-		this.id = id;
-	}
-
-	public int getId() {
+	public Integer getId() {
 		return id;
 	}
 
-	public void setId(int id) {
+	public void setId(Integer id) {
 		this.id = id;
 	}
 

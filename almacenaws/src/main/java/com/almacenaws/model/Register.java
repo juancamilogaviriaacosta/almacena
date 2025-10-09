@@ -16,7 +16,7 @@ public class Register {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column
-	private int id;
+	private Integer id;
 	
 	@Column(columnDefinition = "TIMESTAMP WITHOUT TIME ZONE")
 	@Temporal(TemporalType.TIMESTAMP)
@@ -25,11 +25,11 @@ public class Register {
 	@Column(columnDefinition = "TEXT")
 	private String information;
 
-	public int getId() {
+	public Integer getId() {
 		return id;
 	}
 
-	public void setId(int id) {
+	public void setId(Integer id) {
 		this.id = id;
 	}
 

@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -30,10 +31,10 @@ public class MainController {
         return ResponseEntity.ok("Ok");
     }
     
-    @PostMapping(path = "updateProduct")
+    @PostMapping(path = "updateProduct", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> updateProduct(@RequestBody Product product) {
-    	productService.updateProduct(product);
-    	return ResponseEntity.ok("Ok");
+    	String response = productService.updateProduct(product);
+    	return ResponseEntity.ok(response);
     }
     
     @GetMapping(path = "getProduct")

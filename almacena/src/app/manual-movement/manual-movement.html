@@ -1,5 +1,5 @@
 <header class="hero">
-  <h1>Productos</h1>
+  <h1>Registrar movimiento manual</h1>
   
   <table cellpadding="8" cellspacing="0" style="width:100%; border-collapse:collapse">
     <thead>
@@ -7,8 +7,7 @@
             <th>Sku</th>
             <th>Códigos</th>
             <th>Producto</th>
-            <th>Categoría</th>
-            <th>Opciones</th>
+            <th>Cantidad</th>
         </tr>
     </thead>
 
@@ -18,12 +17,12 @@
             <td>{{ p.sku }}</td>
             <td [innerHTML]="p.codes | semicolonBreak"></td>
             <td>{{ p.name }}</td>
-            <td>{{ p.category }}</td>
             <td class="div-left">
-                <button id="ml" (click)="editProduct(p.id)">Editar</button>
+                <input type="number" name="quantity" id="quantity" step="1" value="0">
             </td>
         </tr>
         }
     </tbody>
   </table>
+  <button (click)="save()">Guardar</button>
 </header>
