@@ -103,9 +103,9 @@ public class ProductRepository {
     	}
     	
     	if(names.isEmpty()) {
-			String newCodes = "INSERT INTO code(code, status, product_id) VALUES (?, ?, ?)";
-			String sqlProduct = "UPDATE product SET category=?, name=?, sku=?, status=? WHERE id = ?";
-			String deleteCodes = "DELETE FROM code WHERE product_id = ?";
+    		String sqlProduct = "UPDATE product SET category=?, name=?, sku=?, status=? WHERE id = ?";
+    		String deleteCodes = "DELETE FROM code WHERE product_id = ?";
+    		String newCodes = "INSERT INTO code(code, status, product_id) VALUES (?, ?, ?)";
 	    	jdbcTemplate.update(sqlProduct, product.getCategory(), product.getName(), product.getSku(), product.getStatus().name(), product.getId());
 	    	jdbcTemplate.update(deleteCodes, product.getId());
 	    	for (String tmp : codes) {
@@ -115,6 +115,22 @@ public class ProductRepository {
     	}
     	return response;
     }
+    
+    public void manualMovement(Integer warehouseId, List<Map<String, Object>> manualMovement) {
+    	OffsetDateTime now = OffsetDateTime.now();
+    	String sqlInvMovement = "INSERT INTO inventory_movement(fechahora, movement_type, quantity, to_warehouse_id, usuario_id, product_id)\n"
+	    		+ "VALUES (?, ?, ?, ?, ?, ?)";
+    	String sqlAdition = "UPDATE inventory SET quantity = quantity + ? WHERE product_id=? AND warehouse_id=?";
+    	for (Map<String, Object> tmp : manualMovement) {
+			Integer productId = (Integer) tmp.get("id");
+			Integer mquantity = (Integer) tmp.get("mquantity");
+			if(productId != null && mquantity != null && !mquantity.equals(0)) {
+				jdbcTemplate.update(sqlInvMovement, now, MovementType.Manual.name(), mquantity, warehouseId, 1, productId);
+				jdbcTemplate.update(sqlAdition, mquantity, productId, warehouseId);
+			}
+		}
+    }
+
 
     public Map<String, Object> getProduct(Integer id) {
     	String sql = "SELECT pro.id, pro.category, pro.name, pro.sku, pro.status,\n"
@@ -154,13 +170,13 @@ public class ProductRepository {
     }
     
     public List<Map<String, Object>> getInventory() {
-    	String sql = "SELECT pro.sku, pro.name, pro.category, inv.quantity, war.name as warehouse, STRING_AGG(cod.code, ';') AS codes\n"
+    	String sql = "SELECT pro.id, pro.sku, pro.name, pro.category, inv.quantity, war.name as warehouse, STRING_AGG(cod.code, ';') AS codes\n"
     			+ "FROM product pro\n"
     			+ "LEFT JOIN code cod ON pro.id = cod.product_id\n"
     			+ "LEFT JOIN inventory inv ON inv.product_id = pro.id\n"
     			+ "LEFT JOIN warehouse war ON inv.warehouse_id = war.id\n"
-    			+ "GROUP BY 1, 2, 3, 4, 5\n"
-    			+ "ORDER BY 2";
+    			+ "GROUP BY 1, 2, 3, 4, 5, 6\n"
+    			+ "ORDER BY 3";
     	List<Map<String, Object>> queryForList = jdbcTemplate.queryForList(sql);
     	return queryForList;
 	}

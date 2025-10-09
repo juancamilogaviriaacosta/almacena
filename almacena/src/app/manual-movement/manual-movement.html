@@ -7,7 +7,8 @@
             <th>Sku</th>
             <th>Códigos</th>
             <th>Producto</th>
-            <th>Cantidad</th>
+            <th>Actual</th>
+            <th>Manual</th>
         </tr>
     </thead>
 
@@ -17,8 +18,9 @@
             <td>{{ p.sku }}</td>
             <td [innerHTML]="p.codes | semicolonBreak"></td>
             <td>{{ p.name }}</td>
+            <td>{{ p.quantity }}</td>
             <td class="div-left">
-                <input type="number" name="quantity" id="quantity" step="1" value="0">
+                <input type="number" name="mquantity" id="mquantity" step="1" [(ngModel)]="p.mquantity">
             </td>
         </tr>
         }
@@ -26,3 +28,12 @@
   </table>
   <button (click)="save()">Guardar</button>
 </header>
+
+@if (uploading) {
+    <div class="modal">
+    <div class="modal-content">
+        <img src="uploading.gif" alt="Subiendo..." style="height:48px;display:block;margin:auto;">
+        <p>Subiendo archivo, por favor espera...</p>
+    </div>
+    </div>
+}

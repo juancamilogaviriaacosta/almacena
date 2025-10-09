@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -35,6 +36,13 @@ public class MainController {
     public ResponseEntity<String> updateProduct(@RequestBody Product product) {
     	String response = productService.updateProduct(product);
     	return ResponseEntity.ok(response);
+    }
+    
+    @PostMapping(path = "manualMovement/{warehouseId}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> manualMovement(@PathVariable("warehouseId") Integer warehouseId,
+    		@RequestBody List<Map<String, Object>> manualMovement) {
+    	productService.manualMovement(warehouseId, manualMovement);
+    	return ResponseEntity.ok("Ok");
     }
     
     @GetMapping(path = "getProduct")

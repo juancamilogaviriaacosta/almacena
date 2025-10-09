@@ -42,6 +42,7 @@ export class Movements implements OnInit {
           next: (response) => {
             this.uploading = false;
             (event.target as HTMLInputElement).value = '';
+            window.location.href = '/home';
           },
           error: (error) => {
             this.uploading = false;

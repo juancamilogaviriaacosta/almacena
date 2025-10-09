@@ -25,6 +25,10 @@ public class ProductService {
     	return productRepository.updateProduct(product);
     }
     
+    public void manualMovement(Integer warehouseId, List<Map<String, Object>> manualMovement) {
+    	productRepository.manualMovement(warehouseId, manualMovement);
+    }
+    
     public Map<String, Object> getProduct(Integer id) {
         return productRepository.getProduct(id);
     }
