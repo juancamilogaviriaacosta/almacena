@@ -1,5 +1,6 @@
 package com.almacenaws.repository;
 
+import java.text.DecimalFormat;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -164,7 +165,7 @@ public class ProductRepository {
     			+ "FROM product pro\n"
     			+ "LEFT JOIN code cod ON pro.id = cod.product_id\n"
     			+ "GROUP BY 1, 2, 3, 4, 5\n"
-    			+ "ORDER BY 1";
+    			+ "ORDER BY 3";
         List<Map<String, Object>> queryForList = jdbcTemplate.queryForList(sql);
         return queryForList;
     }
@@ -214,22 +215,36 @@ public class ProductRepository {
 		Map<String, Integer> response = new HashMap<>();
 		response.put("success", 0);
 		response.put("errors", 0);
-		try (Workbook workbook = WorkbookFactory.create(mpf.getInputStream())){
+		try (Workbook workbook = WorkbookFactory.create(mpf.getInputStream())) {
 			Map<String, Object[]> map = new HashMap<>();
 			OffsetDateTime now = OffsetDateTime.now();
 			Sheet sheet = workbook.getSheetAt(0);
 			Iterator<Row> rowIterator = sheet.iterator();
+			DecimalFormat df = new DecimalFormat("#");
 		    while (rowIterator.hasNext()) {
 		        Row row = rowIterator.next();
 		        try {
-		        	String code = row.getCell(16).getStringCellValue();
-		        	String name = row.getCell(17).getStringCellValue();
-					Integer quantity = ((Double) row.getCell(6).getNumericCellValue()).intValue();
-		        	if(code.startsWith("MCO")) {
-		        		if(map.get(code) == null) {
-		        			map.put(code, new Object[] {0, name});
-		        		}
-		        		map.put(code, new Object[] {(Integer) map.get(code)[0] + quantity, name});
+		        	if("ml".equals(fileId)) {
+		        		String code = row.getCell(16).getStringCellValue();
+			        	String name = row.getCell(17).getStringCellValue();
+						Integer quantity = ((Double) row.getCell(6).getNumericCellValue()).intValue();
+			        	if(code.startsWith("MCO")) {
+			        		if(map.get(code) == null) {
+			        			map.put(code, new Object[] {0, name});
+			        		}
+			        		map.put(code, new Object[] {(Integer) map.get(code)[0] + quantity, name});
+			        	}
+		        	} else {
+		        		String code = df.format(row.getCell(26).getNumericCellValue());
+			        	String name = row.getCell(29).getStringCellValue();
+						Integer quantity = ((Double) row.getCell(31).getNumericCellValue()).intValue();
+						//FIXME
+			        	//if(code.startsWith("MCO")) {
+			        		if(map.get(code) == null) {
+			        			map.put(code, new Object[] {0, name});
+			        		}
+			        		map.put(code, new Object[] {(Integer) map.get(code)[0] + quantity, name});
+			        	//}
 		        	}
 				} catch (Exception e) {
 					//e.printStackTrace();
