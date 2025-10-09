@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-product-management',
@@ -21,7 +22,7 @@ export class ProductManagement {
 
   ngOnInit() {
     this.id = this.route.snapshot.paramMap.get('id');
-    let tmp = this.http.get('http://localhost:8080/api/getProduct?id=' + this.id, { responseType: 'json' });
+    let tmp = this.http.get(environment.apiUrl+'/api/getProduct?id=' + this.id, { responseType: 'json' });
     tmp.subscribe(product => {
       this.product = product;
       if(!(this.product.code)) {
@@ -33,7 +34,7 @@ export class ProductManagement {
   
   save() {
     this.uploading = true;
-    this.http.post('http://localhost:8080/api/updateProduct', this.product, { responseType: 'text' })
+    this.http.post(environment.apiUrl+'/api/updateProduct', this.product, { responseType: 'text' })
       .subscribe({
         next: (response) => {
           setTimeout(() => {

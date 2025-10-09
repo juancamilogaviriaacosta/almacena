@@ -5,8 +5,11 @@ import { Log } from './log/log';
 import { Products } from './products/products';
 import { ProductManagement } from './product-management/product-management';
 import { ManualMovement } from './manual-movement/manual-movement';
+import { Login } from './login/login';
 
 export const routes: Routes = [
+    { path: '', redirectTo: '/login', pathMatch: 'full' },
+    { path: 'login', component: Login },
     { path: 'home', component: Home},
     { path: 'movements', component: Movements},
     { path: 'products', component: Products},

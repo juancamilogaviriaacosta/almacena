@@ -3,6 +3,7 @@ import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { SemicolonBreakPipe } from '../pipes/semicolon-break.pipe';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-manual-movement',
@@ -20,7 +21,7 @@ export class ManualMovement {
 
   ngOnInit(): void {
     this.id = this.route.snapshot.paramMap.get('id');
-    let tmp = this.http.get('http://localhost:8080/api/getInventory', { responseType: 'json' });
+    let tmp = this.http.get(environment.apiUrl+'/api/getInventory', { responseType: 'json' });
     tmp.subscribe(table => {
       this.table = table;
     });
@@ -29,7 +30,7 @@ export class ManualMovement {
   save() {
     if(this.table != null && this.table.length && this.id != null) {
       this.uploading = true;
-      this.http.post('http://localhost:8080/api/manualMovement/'+this.id, this.table, { responseType: 'text' })
+      this.http.post(environment.apiUrl+'/api/manualMovement/'+this.id, this.table, { responseType: 'text' })
         .subscribe({
           next: (response) => {
             setTimeout(() => {

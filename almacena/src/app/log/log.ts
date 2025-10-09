@@ -1,6 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-log',
@@ -15,7 +16,7 @@ export class Log implements OnInit {
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
-    let tmp = this.http.get('http://localhost:8080/api/getRegister', { responseType: 'json' });
+    let tmp = this.http.get(environment.apiUrl+'/api/getRegister', { responseType: 'json' });
     tmp.subscribe(table => {
       this.table = table;
     });

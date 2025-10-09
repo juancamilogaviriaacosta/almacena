@@ -1,5 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit, ViewChild} from '@angular/core';
+import { environment } from '../../environments/environment';
 
 @Component({
   selector: 'app-movements',
@@ -18,7 +19,7 @@ export class Movements implements OnInit {
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
-    let tmp = this.http.get('http://localhost:8080/api/getWarehouse', { responseType: 'json' });
+    let tmp = this.http.get(environment.apiUrl+'/api/getWarehouse', { responseType: 'json' });
     tmp.subscribe(table => {
       this.table = table;
     });
@@ -37,7 +38,7 @@ export class Movements implements OnInit {
       const formData = new FormData();
       formData.append('file', file);
 
-      this.http.post('http://localhost:8080/api/uploadFile?fileId=' + this.fileId + '&warehouseId=' + this.warehouseId, formData)
+      this.http.post(environment.apiUrl+'/api/uploadFile?fileId=' + this.fileId + '&warehouseId=' + this.warehouseId, formData)
         .subscribe({
           next: (response) => {
             this.uploading = false;
