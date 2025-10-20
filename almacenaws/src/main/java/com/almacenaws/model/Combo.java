@@ -1,5 +1,7 @@
 package com.almacenaws.model;
 
+import java.util.List;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -7,28 +9,28 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
 
 @Entity
-public class Code {
+public class Combo {
 	
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column
 	private Integer id;
 	
-	@Column(unique = true)
-	private String code;
+	@Column
+	private String name;
 	
 	@Column
 	@Enumerated(EnumType.STRING)
 	private Status status;
 	
-	@ManyToOne
-	private Product product;
+	@OneToMany
+	private List<Product> product;
 	
-	@ManyToOne
-	private Combo combo;
+	@OneToMany(mappedBy = "combo")
+	private List<Code> code;
 
 	public Integer getId() {
 		return id;
@@ -38,12 +40,12 @@ public class Code {
 		this.id = id;
 	}
 
-	public String getCode() {
-		return code;
+	public String getName() {
+		return name;
 	}
 
-	public void setCode(String code) {
-		this.code = code;
+	public void setName(String name) {
+		this.name = name;
 	}
 
 	public Status getStatus() {
@@ -54,19 +56,19 @@ public class Code {
 		this.status = status;
 	}
 
-	public Product getProduct() {
+	public List<Product> getProduct() {
 		return product;
 	}
 
-	public void setProduct(Product product) {
+	public void setProduct(List<Product> product) {
 		this.product = product;
 	}
 
-	public Combo getCombo() {
-		return combo;
+	public List<Code> getCode() {
+		return code;
 	}
 
-	public void setCombo(Combo combo) {
-		this.combo = combo;
+	public void setCode(List<Code> code) {
+		this.code = code;
 	}
 }

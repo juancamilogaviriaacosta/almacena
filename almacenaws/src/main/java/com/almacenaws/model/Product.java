@@ -1,5 +1,6 @@
 package com.almacenaws.model;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 import jakarta.persistence.Column;
@@ -30,6 +31,9 @@ public class Product {
 	
 	@Column
 	private String category;
+	
+	@Column
+	private BigDecimal price;
 	
 	@Column
 	@Enumerated(EnumType.STRING)
@@ -73,6 +77,14 @@ public class Product {
 
 	public void setCategory(String category) {
 		this.category = category;
+	}
+
+	public BigDecimal getPrice() {
+		return price;
+	}
+
+	public void setPrice(BigDecimal price) {
+		this.price = price;
 	}
 
 	public Status getStatus() {
