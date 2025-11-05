@@ -174,6 +174,56 @@ public class ProductRepository {
         return queryForList;
     }
     
+    public List<Map<String, Object>> getCombos() {
+    	String sql = "SELECT com.id, com.name, com.status, STRING_AGG(cod.code, ';') AS codes\n"
+    			+ "FROM combo com\n"
+    			+ "LEFT JOIN code cod ON com.id = cod.combo_id\n"
+    			+ "GROUP BY 1, 2, 3\n"
+    			+ "ORDER BY 2";
+        List<Map<String, Object>> queryForList = jdbcTemplate.queryForList(sql);
+        return queryForList;
+    }
+    
+    public Map<String, Object> getCombo(Integer id) {
+    	String sql = "SELECT com.id, com.name, com.status,\n"
+    			+ "'[' || STRING_AGG(DISTINCT '{\"id\":' || cod.id || ', \"code\":\"' || cod.code || '\"}', ',') || ']' AS code,\n"
+    			+ "'[' || STRING_AGG(DISTINCT '{\"id\":' || pro.id || ', \"name\":\"' || pro.name || '\"}', ',') || ']' AS products\n"
+    			+ "FROM combo com\n"
+    			+ "LEFT JOIN code cod ON com.id = cod.combo_id\n"
+    			+ "LEFT JOIN combo_product cpr ON com.id = cpr.combo_id\n"
+    			+ "LEFT JOIN product pro ON cpr.product_id = pro.id\n"
+    			+ "WHERE com.id = ?\n"
+    			+ "GROUP BY 1, 2, 3\n"
+    			+ "ORDER BY 1";
+        Map<String, Object> queryForList = jdbcTemplate.queryForList(sql, id).get(0);
+        String code = (String) queryForList.get("code");
+        String products = (String) queryForList.get("products");
+        try {
+        	if(code != null) {
+        		List<Map<String, Object>> json = new ObjectMapper().readValue(code, new TypeReference<List<Map<String, Object>>>() {});
+            	queryForList.put("code", json);        	
+        	} else {
+        		List<Map<String, Object>> codes = new ArrayList<>();
+        		Map<String, Object> blank = new HashMap<>();
+				codes.add(blank);
+        		queryForList.put("code", codes);
+        	}
+        	
+        	if(products != null) {
+        		List<Map<String, Object>> json = new ObjectMapper().readValue(products, new TypeReference<List<Map<String, Object>>>() {});
+            	queryForList.put("products", json);        	
+        	} else {
+        		List<Map<String, Object>> productsLists = new ArrayList<>();
+        		Map<String, Object> blank = new HashMap<>();
+        		productsLists.add(blank);
+        		queryForList.put("products", productsLists);
+        	}        	
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+        return queryForList;
+    }
+    
     public List<Map<String, Object>> getInventory() {
     	String sql = "SELECT pro.id, pro.sku, pro.name, pro.category, inv.quantity, war.name as warehouse, STRING_AGG(cod.code, ';') AS codes\n"
     			+ "FROM product pro\n"

@@ -1,12 +1,8 @@
 <div class="formulario">
   <h1>Identificador: {{ id }}</h1>
-  @if (product) {
+  @if (combo) {
     <form (ngSubmit)="save()" (keydown.enter)="$event.preventDefault()">
-      <div>
-        <label for="sku">SKU:</label>
-        <input type="text" id="sku" name="sku" [(ngModel)]="product.sku" />
-      </div>
-      @for (tmp of product.code; let i = $index; track tmp) {
+      @for (tmp of combo.code; let i = $index; track tmp) {
         <div class="autocomplete-row">
           @if (i===0) {
             <label>Códigos:</label>
@@ -21,16 +17,35 @@
       }
       <div>
         <label for="nombre">Nombre:</label>
-        <input type="text" id="nombre" name="nombre" [(ngModel)]="product.name" />
+        <input type="text" id="nombre" name="nombre" [(ngModel)]="combo.name" />
       </div>
-      <div>
-        <label for="categoria">Categoría:</label>
-        <input type="text" id="categoria" name="categoria" [(ngModel)]="product.category" />
+      <div class="autocomplete-row">
+        <label>Buscar producto:</label>
+        <input type="text"
+               list="productsList"
+               [(ngModel)]="selectedProduct"
+               name="selectedProduct"
+               (input)="onProductInput()"
+               (keydown.enter)="addProductFromAutocomplete()"
+               placeholder="Escribe para buscar..."
+               />
+        <datalist id="productsList">
+          @for (p of filteredProducts; track p) {
+            <option [value]="p.name"></option>
+          }          
+        </datalist>
+        <button type="button" class="circle-btn" (click)="addProductFromAutocomplete()">+</button>
       </div>
-      <div>
-        <label for="estado">Estado:</label>
-        <input type="text" id="estado" name="estado" [(ngModel)]="product.status" />
-      </div>
+      @for (tmp2 of combo.products; let i = $index; track tmp2) {
+        <div>
+          @if (i===0) {
+            <label>Productos:</label>
+          } @else {
+            <label>&nbsp;</label>
+          }
+          <input type="text" name="product{{i}}" [(ngModel)]="tmp2.name" />
+        </div>
+      }
       <div style="display: flex; gap: 1rem; margin-top: 1rem;">
         <button type="submit" (click)="save()">Guardar</button>
         <button type="button" class="cancelar" (click)="cancel()">Cancelar</button>

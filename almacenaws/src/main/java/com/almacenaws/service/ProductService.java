@@ -37,6 +37,13 @@ public class ProductService {
         return productRepository.getProducts();
     }
     
+    public List<Map<String, Object>> getCombos() {
+        return productRepository.getCombos();
+    }
+    
+    public Map<String, Object> getCombo(Integer id) {
+        return productRepository.getCombo(id);
+    }
     public List<Map<String, Object>> getInventory () {
     	return productRepository.getInventory();
     }

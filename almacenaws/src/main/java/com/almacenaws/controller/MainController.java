@@ -55,6 +55,16 @@ public class MainController {
         return productService.getProducts();
     }
     
+    @GetMapping(path = "getCombos")
+    public List<Map<String, Object>> getCombos() {
+        return productService.getCombos();
+    }
+    
+    @GetMapping(path = "getCombo")
+    public Map<String, Object> getCombo(@RequestParam("id") Integer id) {
+        return productService.getCombo(id);
+    }
+    
     @GetMapping(path = "getInventory")
     public List<Map<String, Object>> getInventory() {
         return productService.getInventory();
