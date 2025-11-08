@@ -36,7 +36,7 @@
         </datalist>
         <button type="button" class="circle-btn" (click)="addProductFromAutocomplete()">+</button>
       </div>
-      @for (tmp2 of combo.products; let i = $index; track tmp2) {
+      @for (tmp2 of combo.product; let i = $index; track tmp2) {
         <div>
           @if (i===0) {
             <label>Productos:</label>
@@ -47,7 +47,7 @@
         </div>
       }
       <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-        <button type="submit" (click)="save()">Guardar</button>
+        <button type="submit" >Guardar</button>
         <button type="button" class="cancelar" (click)="cancel()">Cancelar</button>
       </div>
     </form>

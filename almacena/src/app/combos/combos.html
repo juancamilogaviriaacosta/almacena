@@ -1,29 +1,33 @@
 <header class="hero">
-  <h1>Combos</h1>
-  
-  <table cellpadding="8" cellspacing="0" style="width:100%; border-collapse:collapse">
-    <thead>
-        <tr>
-            <th>Sku</th>
-            <th>Códigos</th>
-            <th>Producto</th>
-            <th>Categoría</th>
-            <th>Opciones</th>
-        </tr>
-    </thead>
+    <h1>Combos</h1>
 
-    <tbody>
-        @for (p of table; track p) {
-        <tr>
-            <td>{{ p.sku }}</td>
-            <td [innerHTML]="p.codes | semicolonBreak"></td>
-            <td>{{ p.name }}</td>
-            <td>{{ p.category }}</td>
-            <td class="div-left">
-                <button id="ml" (click)="edit(p.id)">Editar</button>
-            </td>
-        </tr>
-        }
-    </tbody>
-  </table>
+    <div class="toolbar">
+        <button class="create-btn" (click)="edit('new')">Nuevo</button>
+    </div>
+
+    <table cellpadding="8" cellspacing="0" style="width:100%; border-collapse:collapse">
+        <thead>
+            <tr>
+                <th>Sku</th>
+                <th>Códigos</th>
+                <th>Producto</th>
+                <th>Categoría</th>
+                <th>Opciones</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            @for (p of table; track p) {
+            <tr>
+                <td>{{ p.sku }}</td>
+                <td [innerHTML]="p.codes | semicolonBreak"></td>
+                <td>{{ p.name }}</td>
+                <td>{{ p.category }}</td>
+                <td class="div-left">
+                    <button id="ml" (click)="edit(p.id)">Editar</button>
+                </td>
+            </tr>
+            }
+        </tbody>
+    </table>
 </header>

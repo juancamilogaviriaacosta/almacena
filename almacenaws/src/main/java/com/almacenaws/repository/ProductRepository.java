@@ -23,6 +23,7 @@ import org.springframework.stereotype.Repository;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.almacenaws.model.Code;
+import com.almacenaws.model.Combo;
 import com.almacenaws.model.InventoryMovement;
 import com.almacenaws.model.MovementType;
 import com.almacenaws.model.Product;
@@ -121,6 +122,61 @@ public class ProductRepository {
     	return response;
     }
     
+    public String updateCombo(Combo combo) {
+    	String response = "";
+    	List<String> codes = combo.getCode()
+    			.stream()
+    			.map(Code::getCode)
+    			.filter(Objects::nonNull)
+    			.filter(code -> !code.trim().isEmpty()).toList();
+    	List<String> names = new ArrayList<>();
+    	if(!codes.isEmpty()) {
+    		String placeholders = String.join(",", Collections.nCopies(codes.size(), "?"));
+        	String sqlCodes = "SELECT DISTINCT com.name\n"
+        			+ "FROM code cod\n"
+        			+ "INNER JOIN combo com ON cod.combo_id = com.id\n"
+        			+ "WHERE 1 = 1\n"
+        			+ "AND cod.code IN ("+ placeholders +")\n"
+    				+ "AND com.id != ?";
+        	List<Object> codesToQuery = new ArrayList<>(codes);
+        	codesToQuery.add(combo.getId());
+        	names = jdbcTemplate.queryForList(sqlCodes, String.class, codesToQuery.toArray());
+        	if(!names.isEmpty()) {
+	        	response = "Código duplicado en:<br/>";
+	    		for (String tmp : names) {
+	    			response = response + tmp + "<br/>";
+	    		}
+        	}
+    	}
+    	
+    	if(names.isEmpty()) {
+    		if(combo.getId() == null) {
+    			String newCombo = "INSERT INTO combo(name, status) VALUES (?, ?) RETURNING id";
+    			List<Map<String, Object>> newComboBd = jdbcTemplate.queryForList(newCombo, combo.getName(), Status.Activo.name());
+    			combo.setId((Integer) newComboBd.get(0).get("id"));
+    		} else {
+    			String sqlProduct = "UPDATE combo SET name=?, status=? WHERE id = ?";
+        		String deleteCodes = "DELETE FROM code WHERE combo_id = ?";
+        		String deleteComboProducts = "DELETE FROM combo_product WHERE combo_id = ?";
+        		jdbcTemplate.update(sqlProduct, combo.getName(), combo.getStatus().name(), combo.getId());
+    	    	jdbcTemplate.update(deleteCodes, combo.getId());    	    	
+    	    	jdbcTemplate.update(deleteComboProducts, combo.getId());
+    		}
+    		String newCodes = "INSERT INTO code(code, status, combo_id) VALUES (?, ?, ?)";    		
+    		String createComboProducts = "INSERT INTO combo_product(combo_id, product_id)	VALUES (?, ?)";
+	    	for (String tmp : codes) {
+	    		jdbcTemplate.update(newCodes, tmp, Status.Activo.name(), combo.getId());
+			}
+	    	if(combo.getProduct() != null) {
+	    		for (Product tmp : combo.getProduct()) {
+	    			jdbcTemplate.update(createComboProducts, combo.getId(), tmp.getId());
+				}
+	    	}
+	    	response = "Ok";
+    	}
+    	return response;
+    }
+    
     public void manualMovement(Integer warehouseId, List<Map<String, Object>> manualMovement) {
     	OffsetDateTime now = OffsetDateTime.now();
     	String sqlInvMovement = "INSERT INTO inventory_movement(fechahora, movement_type, quantity, to_warehouse_id, usuario_id, product_id)\n"
@@ -187,7 +243,7 @@ public class ProductRepository {
     public Map<String, Object> getCombo(Integer id) {
     	String sql = "SELECT com.id, com.name, com.status,\n"
     			+ "'[' || STRING_AGG(DISTINCT '{\"id\":' || cod.id || ', \"code\":\"' || cod.code || '\"}', ',') || ']' AS code,\n"
-    			+ "'[' || STRING_AGG(DISTINCT '{\"id\":' || pro.id || ', \"name\":\"' || pro.name || '\"}', ',') || ']' AS products\n"
+    			+ "'[' || STRING_AGG(DISTINCT '{\"id\":' || pro.id || ', \"name\":\"' || pro.name || '\"}', ',') || ']' AS product\n"
     			+ "FROM combo com\n"
     			+ "LEFT JOIN code cod ON com.id = cod.combo_id\n"
     			+ "LEFT JOIN combo_product cpr ON com.id = cpr.combo_id\n"
@@ -197,7 +253,7 @@ public class ProductRepository {
     			+ "ORDER BY 1";
         Map<String, Object> queryForList = jdbcTemplate.queryForList(sql, id).get(0);
         String code = (String) queryForList.get("code");
-        String products = (String) queryForList.get("products");
+        String product = (String) queryForList.get("product");
         try {
         	if(code != null) {
         		List<Map<String, Object>> json = new ObjectMapper().readValue(code, new TypeReference<List<Map<String, Object>>>() {});
@@ -209,14 +265,14 @@ public class ProductRepository {
         		queryForList.put("code", codes);
         	}
         	
-        	if(products != null) {
-        		List<Map<String, Object>> json = new ObjectMapper().readValue(products, new TypeReference<List<Map<String, Object>>>() {});
-            	queryForList.put("products", json);        	
+        	if(product != null) {
+        		List<Map<String, Object>> json = new ObjectMapper().readValue(product, new TypeReference<List<Map<String, Object>>>() {});
+            	queryForList.put("product", json);        	
         	} else {
         		List<Map<String, Object>> productsLists = new ArrayList<>();
         		Map<String, Object> blank = new HashMap<>();
         		productsLists.add(blank);
-        		queryForList.put("products", productsLists);
+        		queryForList.put("product", productsLists);
         	}        	
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -225,12 +281,12 @@ public class ProductRepository {
     }
     
     public List<Map<String, Object>> getInventory() {
-    	String sql = "SELECT pro.id, pro.sku, pro.name, pro.category, inv.quantity, war.name as warehouse, STRING_AGG(cod.code, ';') AS codes\n"
+    	String sql = "SELECT pro.id, pro.sku, pro.name, pro.category, inv.quantity, war.name as warehouse, pro.price, STRING_AGG(cod.code, ';') AS codes\n"
     			+ "FROM product pro\n"
     			+ "LEFT JOIN code cod ON pro.id = cod.product_id\n"
     			+ "LEFT JOIN inventory inv ON inv.product_id = pro.id\n"
     			+ "LEFT JOIN warehouse war ON inv.warehouse_id = war.id\n"
-    			+ "GROUP BY 1, 2, 3, 4, 5, 6\n"
+    			+ "GROUP BY 1, 2, 3, 4, 5, 6, 7\n"
     			+ "ORDER BY 3";
     	List<Map<String, Object>> queryForList = jdbcTemplate.queryForList(sql);
     	return queryForList;
@@ -281,23 +337,25 @@ public class ProductRepository {
 		        	if("ml".equals(fileId)) {
 		        		String code = row.getCell(16).getStringCellValue();
 			        	String name = row.getCell(17).getStringCellValue();
+			        	Integer price = ((Double) row.getCell(19).getNumericCellValue()).intValue();
 						Integer quantity = ((Double) row.getCell(6).getNumericCellValue()).intValue();
 			        	if(code.startsWith("MCO")) {
 			        		if(map.get(code) == null) {
-			        			map.put(code, new Object[] {0, name});
+			        			map.put(code, new Object[] {0, name, price});
 			        		}
-			        		map.put(code, new Object[] {(Integer) map.get(code)[0] + quantity, name});
+			        		map.put(code, new Object[] {(Integer) map.get(code)[0] + quantity, name, price});
 			        	}
 		        	} else {
 		        		String code = df.format(row.getCell(26).getNumericCellValue());
 			        	String name = row.getCell(29).getStringCellValue();
+						Integer price = ((Double) row.getCell(24).getNumericCellValue()).intValue();
 						Integer quantity = ((Double) row.getCell(31).getNumericCellValue()).intValue();
 						//FIXME
 			        	//if(code.startsWith("MCO")) {
 			        		if(map.get(code) == null) {
-			        			map.put(code, new Object[] {0, name});
+			        			map.put(code, new Object[] {0, name, price});
 			        		}
-			        		map.put(code, new Object[] {(Integer) map.get(code)[0] + quantity, name});
+			        		map.put(code, new Object[] {(Integer) map.get(code)[0] + quantity, name, price});
 			        	//}
 		        	}
 				} catch (Exception e) {

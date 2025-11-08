@@ -9,8 +9,8 @@
             <th>Sku</th>
             <th>Códigos</th>
             <th>Producto</th>
-            <th>Categoría</th>
             <th>Cantidad</th>
+            <th>Precio</th>
             <th>Ubicación</th>            
         </tr>
     </thead>
@@ -21,8 +21,8 @@
             <td>{{ p.sku }}</td>
             <td [innerHTML]="p.codes | semicolonBreak"></td>
             <td>{{ p.name }}</td>
-            <td>{{ p.category }}</td>
             <td>{{ p.quantity }}</td>
+            <td>{{ p.price | number: '1.0-2'}}</td>
             <td>{{ p.warehouse }}</td>
         </tr>
         }

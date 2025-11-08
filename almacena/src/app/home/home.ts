@@ -2,10 +2,11 @@ import { HttpClient } from '@angular/common/http';
 import { Component, OnInit } from '@angular/core';
 import { SemicolonBreakPipe } from '../pipes/semicolon-break.pipe';
 import { environment } from '../../environments/environment';
+import { DecimalPipe } from '@angular/common';
 
 @Component({
   selector: 'app-home',
-  imports: [SemicolonBreakPipe],
+  imports: [SemicolonBreakPipe, DecimalPipe],
   templateUrl: './home.html',
   styleUrl: './home.css'
 })

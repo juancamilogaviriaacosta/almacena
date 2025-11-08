@@ -23,7 +23,7 @@ export class Combos {
     });
   }
 
-  edit(id: number) {
+  edit(id: any) {
     this.router.navigate(['/combo-management', id]);
   }
 

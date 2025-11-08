@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.almacenaws.model.Combo;
 import com.almacenaws.model.InventoryMovement;
 import com.almacenaws.model.Product;
 import com.almacenaws.repository.ProductRepository;
@@ -23,6 +24,10 @@ public class ProductService {
     
     public String updateProduct(Product product) {
     	return productRepository.updateProduct(product);
+    }
+    
+    public String updateCombo(Combo combo) {
+    	return productRepository.updateCombo(combo);
     }
     
     public void manualMovement(Integer warehouseId, List<Map<String, Object>> manualMovement) {

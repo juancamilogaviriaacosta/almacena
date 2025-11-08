@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
+import com.almacenaws.model.Combo;
 import com.almacenaws.model.InventoryMovement;
 import com.almacenaws.model.Product;
 import com.almacenaws.service.ProductService;
@@ -35,6 +36,12 @@ public class MainController {
     @PostMapping(path = "updateProduct", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> updateProduct(@RequestBody Product product) {
     	String response = productService.updateProduct(product);
+    	return ResponseEntity.ok(response);
+    }
+    
+    @PostMapping(path = "updateCombo", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<String> updateCombo(@RequestBody Combo combo) {
+    	String response = productService.updateCombo(combo);
     	return ResponseEntity.ok(response);
     }
     

@@ -11,7 +11,7 @@ import { environment } from '../../environments/environment';
   styleUrl: './combo-management.css'
 })
 export class ComboManagement {
-id:string | null = null;
+  id:string | null = null;
   combo: any;
   uploading = false;
   mensajeError = '';
@@ -24,16 +24,21 @@ id:string | null = null;
 
   ngOnInit() {
     this.loadProductSuggestions();
-
     this.id = this.route.snapshot.paramMap.get('id');
-    let tmp = this.http.get(environment.apiUrl+'/api/getCombo?id=' + this.id, { responseType: 'json' });
-    tmp.subscribe(value => {
-      this.combo = value;
-      if(!(this.combo.code)) {
-        this.combo.code = [];
-        this.combo.code.push({ code: '' });
-      }
-    });
+    if(this.id === 'new') {
+      this.combo = {id: null, name: null};
+      this.combo.code = [];
+      this.combo.code.push({ code: '' });
+    } else {
+      let tmp = this.http.get(environment.apiUrl+'/api/getCombo?id=' + this.id, { responseType: 'json' });
+      tmp.subscribe(value => {
+        this.combo = value;
+        if(!(this.combo.code)) {
+          this.combo.code = [];
+          this.combo.code.push({ code: '' });
+        }
+      });
+    }
   }
   
   save() {
@@ -80,15 +85,6 @@ id:string | null = null;
       this.allProducts = [];
       this.filteredProducts = [];
     });
-
-    /*this.http.get<any[]>(environment.apiUrl + 'api/getProducts', { responseType: 'json' })
-      .subscribe(products => {
-        this.allProducts = products || [];
-        this.filteredProducts = this.allProducts;
-      }, () => {
-        this.allProducts = [];
-        this.filteredProducts = [];
-      });*/
   }
 
   onProductInput() {
@@ -103,10 +99,10 @@ id:string | null = null;
       return;
     }
     const match = this.allProducts.find(p => p.name === this.selectedProduct);
-    if (!this.combo.products) {
-      this.combo.products = [];
+    if (!this.combo.product) {
+      this.combo.product = [];
     }
-    this.combo.products.push({id: match.id, name: match.name});
+    this.combo.product.push({id: match.id, name: match.name});
     this.selectedProduct = '';
     this.filteredProducts = this.allProducts;
   }
