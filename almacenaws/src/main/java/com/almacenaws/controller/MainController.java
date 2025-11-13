@@ -73,8 +73,8 @@ public class MainController {
     }
     
     @GetMapping(path = "getInventory")
-    public List<Map<String, Object>> getInventory() {
-        return productService.getInventory();
+    public List<Map<String, Object>> getInventory(@RequestParam("filterDate") String filterDate) {
+        return productService.getInventory(filterDate);
     }
     
     @GetMapping(path = "getWarehouse")

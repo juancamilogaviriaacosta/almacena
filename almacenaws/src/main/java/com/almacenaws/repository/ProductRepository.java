@@ -270,8 +270,6 @@ public class ProductRepository {
             	queryForList.put("product", json);        	
         	} else {
         		List<Map<String, Object>> productsLists = new ArrayList<>();
-        		Map<String, Object> blank = new HashMap<>();
-        		productsLists.add(blank);
         		queryForList.put("product", productsLists);
         	}        	
 		} catch (Exception e) {
@@ -280,15 +278,21 @@ public class ProductRepository {
         return queryForList;
     }
     
-    public List<Map<String, Object>> getInventory() {
-    	String sql = "SELECT pro.id, pro.sku, pro.name, pro.category, inv.quantity, war.name as warehouse, pro.price, STRING_AGG(cod.code, ';') AS codes\n"
+    public List<Map<String, Object>> getInventory(String filterDate) {
+    	String sql = "SELECT pro.name, war.name AS warehouse, inv.quantity, pro.price, sub.fechahora, STRING_AGG(cod.code, ';') AS codes\n"
+    			+ "FROM (\n"
+    			+ "SELECT pro.id AS product_id, MAX(inv.fechahora) AS fechahora\n"
     			+ "FROM product pro\n"
-    			+ "LEFT JOIN code cod ON pro.id = cod.product_id\n"
     			+ "LEFT JOIN inventory inv ON inv.product_id = pro.id\n"
+    			+ "WHERE inv.fechahora <= TO_TIMESTAMP(?, 'YYYY-MM-DD HH24:MI:SS')\n"
+    			+ "GROUP BY 1\n"
+    			+ ") sub\n"
+    			+ "LEFT JOIN inventory inv ON (sub.product_id = inv.product_id AND sub.fechahora = inv.fechahora)\n"
+    			+ "LEFT JOIN product pro ON sub.product_id = pro.id\n"
+    			+ "LEFT JOIN code cod ON pro.id = cod.product_id\n"
     			+ "LEFT JOIN warehouse war ON inv.warehouse_id = war.id\n"
-    			+ "GROUP BY 1, 2, 3, 4, 5, 6, 7\n"
-    			+ "ORDER BY 3";
-    	List<Map<String, Object>> queryForList = jdbcTemplate.queryForList(sql);
+    			+ "GROUP BY 1, 2, 3, 4, 5";
+    	List<Map<String, Object>> queryForList = jdbcTemplate.queryForList(sql, filterDate + " 23:59:59");
     	return queryForList;
 	}
     
@@ -367,11 +371,11 @@ public class ProductRepository {
 		    String sqlProducts = "SELECT STRING_AGG(cod.code, ';') AS codes \n"
 		    		+ "FROM code cod\n"
 		    		+ "WHERE cod.code IN (" + placeholders + ")";
-		    String sqlNewProduct = "INSERT INTO product(name, status) VALUES (?, ?) RETURNING id";
+		    String sqlNewProduct = "INSERT INTO product(name, status, price) VALUES (?, ?, ?) RETURNING id";
 		    String sqlNewCode = "INSERT INTO code(code, status, product_id) VALUES (?, ?, ?)";
 		    String sqlNewCombo = "INSERT INTO combo(name, status) VALUES (?, ?) RETURNING id";
 		    String sqlNewComboCode = "INSERT INTO code(code, status, combo_id) VALUES (?, ?, ?)";
-		    String sqlNewInventory = "INSERT INTO inventory(quantity, product_id, warehouse_id) VALUES (?, ?, ?)";
+		    String sqlNewInventory = "INSERT INTO inventory(quantity, product_id, warehouse_id, fechahora) VALUES (?, ?, ?, ?)";
 		    
 		    Set<String> comboCodes = new HashSet<>();
 		    List<Map<String, Object>> products = jdbcTemplate.query(sqlProducts, new ColumnMapRowMapper(), map.keySet().toArray());
@@ -383,6 +387,7 @@ public class ProductRepository {
 					}
 				}
 		    	String name = (String) map.get(excelCode)[1];
+		    	Integer price = (Integer) map.get(excelCode)[2];
 		    	boolean isCombo = name.contains("&+");
 		    	if (isCombo) {
 		    	    comboCodes.add(excelCode);
@@ -392,9 +397,9 @@ public class ProductRepository {
 		    	    	List<Map<String, Object>> newCombo = jdbcTemplate.queryForList(sqlNewCombo, name, Status.Incompleto.name());
 			    		jdbcTemplate.update(sqlNewComboCode, excelCode, Status.Activo.name(), newCombo.get(0).get("id"));
 		    	    } else {
-		    	    	List<Map<String, Object>> newProduct = jdbcTemplate.queryForList(sqlNewProduct, name, Status.Incompleto.name());
+		    	    	List<Map<String, Object>> newProduct = jdbcTemplate.queryForList(sqlNewProduct, name, Status.Incompleto.name(), price);
 			    		jdbcTemplate.update(sqlNewCode, excelCode, Status.Activo.name() ,newProduct.get(0).get("id"));
-						jdbcTemplate.update(sqlNewInventory, 0, newProduct.get(0).get("id"), warehouseId);
+						jdbcTemplate.update(sqlNewInventory, 0, newProduct.get(0).get("id"), warehouseId, now);
 		    	    }
 		    	}
 			}

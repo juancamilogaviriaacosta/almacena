@@ -3,10 +3,16 @@
   <h1>Bienvenido a Almacena</h1>
   <p>La mejor solución para tu negocio, rápida y segura.</p>
   
+  <div style="margin-bottom: 1rem;">
+    <label>Fecha: </label>
+    <input type="date" [(ngModel)]="filterDate" />
+    <button style="margin: 10px;" (click)="ngOnInit()">Filtrar</button>    
+  </div>
+
   <table cellpadding="8" cellspacing="0" style="width:100%; border-collapse:collapse">
     <thead>
         <tr>
-            <th>Sku</th>
+            <th>Último movimiento</th>
             <th>Códigos</th>
             <th>Producto</th>
             <th>Cantidad</th>
@@ -18,7 +24,7 @@
     <tbody>
         @for (p of table; track p) {
         <tr>
-            <td>{{ p.sku }}</td>
+            <td>{{ p.fechahora | date:'yyyy-MM-dd'}}</td>
             <td [innerHTML]="p.codes | semicolonBreak"></td>
             <td>{{ p.name }}</td>
             <td>{{ p.quantity }}</td>

@@ -49,8 +49,8 @@ public class ProductService {
     public Map<String, Object> getCombo(Integer id) {
         return productRepository.getCombo(id);
     }
-    public List<Map<String, Object>> getInventory () {
-    	return productRepository.getInventory();
+    public List<Map<String, Object>> getInventory (String filterDate) {
+    	return productRepository.getInventory(filterDate);
     }
     
     public List<Map<String, Object>> getWarehouse () {

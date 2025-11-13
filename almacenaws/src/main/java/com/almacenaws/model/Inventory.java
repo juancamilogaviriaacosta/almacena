@@ -1,11 +1,15 @@
 package com.almacenaws.model;
 
+import java.time.OffsetDateTime;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Temporal;
+import jakarta.persistence.TemporalType;
 
 @Entity
 public class Inventory {
@@ -24,18 +28,15 @@ public class Inventory {
 	@Column
 	private Integer quantity;
 	
-	public Inventory() {
-	}
-	
-	public Inventory(int id) {
-		this.id = id;
-	}
+	@Column(columnDefinition = "TIMESTAMP WITHOUT TIME ZONE")
+	@Temporal(TemporalType.TIMESTAMP)
+	private OffsetDateTime fechahora;
 
-	public int getId() {
+	public Integer getId() {
 		return id;
 	}
 
-	public void setId(int id) {
+	public void setId(Integer id) {
 		this.id = id;
 	}
 
@@ -61,5 +62,13 @@ public class Inventory {
 
 	public void setQuantity(Integer quantity) {
 		this.quantity = quantity;
+	}
+
+	public OffsetDateTime getFechahora() {
+		return fechahora;
+	}
+
+	public void setFechahora(OffsetDateTime fechahora) {
+		this.fechahora = fechahora;
 	}
 }

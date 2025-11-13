@@ -123,6 +123,7 @@ tbody td {
   padding: 0.75rem;
   color: #333;
   text-align: left;
+  min-width: 120px;
 }
 
 /* Hover */
