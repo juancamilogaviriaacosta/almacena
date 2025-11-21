@@ -4,15 +4,16 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { SemicolonBreakPipe } from '../pipes/semicolon-break.pipe';
 import { environment } from '../../environments/environment';
+import { DatePipe, DecimalPipe } from '@angular/common';
 
 @Component({
   selector: 'app-manual-movement',
-  imports: [SemicolonBreakPipe, FormsModule],
+  imports: [SemicolonBreakPipe, FormsModule, DecimalPipe, DatePipe],
   templateUrl: './manual-movement.html',
   styleUrl: './manual-movement.css'
 })
 export class ManualMovement {
-
+  filterDate : string = '';
   id:string | null = null;
   table: any;
   uploading: boolean = false;
@@ -21,7 +22,16 @@ export class ManualMovement {
 
   ngOnInit(): void {
     this.id = this.route.snapshot.paramMap.get('id');
-    let tmp = this.http.get(environment.apiUrl+'/api/getInventory', { responseType: 'json' });
+    const today = new Date();
+    const offsetDate = new Date(today.getTime() - today.getTimezoneOffset() * 60000);
+    this.filterDate = offsetDate.toISOString().split('T')[0];
+    const params = {
+      filterDate: this.filterDate,
+      warehouseId: '-1',
+      productId: '-1'
+    };
+
+    let tmp = this.http.get(environment.apiUrl + '/api/getInventory', { params, responseType: 'json'});
     tmp.subscribe(table => {
       this.table = table;
     });

@@ -25,10 +25,7 @@ public class InventoryMovement {
 	private Product product;
 	
 	@ManyToOne
-	private Warehouse fromWarehouse;
-	
-	@ManyToOne
-	private Warehouse toWarehouse;
+	private Warehouse warehouse;
 	
 	@Column
 	private Integer quantity;
@@ -63,20 +60,12 @@ public class InventoryMovement {
 		this.product = product;
 	}
 
-	public Warehouse getFromWarehouse() {
-		return fromWarehouse;
+	public Warehouse getWarehouse() {
+		return warehouse;
 	}
 
-	public void setFromWarehouse(Warehouse fromWarehouse) {
-		this.fromWarehouse = fromWarehouse;
-	}
-
-	public Warehouse getToWarehouse() {
-		return toWarehouse;
-	}
-
-	public void setToWarehouse(Warehouse toWarehouse) {
-		this.toWarehouse = toWarehouse;
+	public void setWarehouse(Warehouse warehouse) {
+		this.warehouse = warehouse;
 	}
 
 	public Integer getQuantity() {
@@ -117,5 +106,5 @@ public class InventoryMovement {
 
 	public void setUsuario(Usuario usuario) {
 		this.usuario = usuario;
-	}	
+	}
 }

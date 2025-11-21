@@ -13,15 +13,42 @@ import { FormsModule } from '@angular/forms';
 })
 export class Home implements OnInit {
 
-  filterDate: string = new Date().toISOString().split('T')[0];
-  table:any;  
+  filterDate: string = '';
+  table:any;
+  warehouses:any;
+  selectedWarehouse: string = '-1';
 
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
-    let tmp = this.http.get(environment.apiUrl+'/api/getInventory?filterDate=' + this.filterDate, { responseType: 'json' });
+    const today = new Date();
+    const offsetDate = new Date(today.getTime() - today.getTimezoneOffset() * 60000);
+    this.filterDate = offsetDate.toISOString().split('T')[0];
+
+    this.loadWarehouses();
+    this.loadInventory();
+  }
+
+  loadInventory() {
+    const params = {
+      filterDate: this.filterDate,
+      warehouseId: this.selectedWarehouse
+    };
+
+    let tmp = this.http.get(environment.apiUrl + '/api/getInventory', { params, responseType: 'json'});
     tmp.subscribe(table => {
       this.table = table;
     });
+  }
+
+  loadWarehouses() {
+    let tmp = this.http.get(environment.apiUrl+'/api/getWarehouse', { responseType: 'json' });
+    tmp.subscribe(warehouses => {
+      this.warehouses = warehouses;
+    });
+  }
+
+  exportToExcel(): void {
+
   }
 }

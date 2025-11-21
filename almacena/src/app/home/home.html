@@ -3,10 +3,18 @@
   <h1>Bienvenido a Almacena</h1>
   <p>La mejor solución para tu negocio, rápida y segura.</p>
   
-  <div style="margin-bottom: 1rem;">
+  <div class="filter-section">
     <label>Fecha: </label>
     <input type="date" [(ngModel)]="filterDate" />
-    <button style="margin: 10px;" (click)="ngOnInit()">Filtrar</button>    
+    <label>Ubicacion: </label>
+    <select [(ngModel)]="selectedWarehouse">
+        <option value="-1">Todas</option>
+        @for (w of warehouses; track w) {
+            <option [value]="w.id">{{ w.name }}</option>
+        }
+    </select>
+    <button style="margin: 10px;" (click)="loadInventory()">Filtrar</button>
+    <button (click)="exportToExcel()">Exportar a Excel</button>
   </div>
 
   <table cellpadding="8" cellspacing="0" style="width:100%; border-collapse:collapse">

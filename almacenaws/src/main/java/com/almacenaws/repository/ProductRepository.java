@@ -70,13 +70,13 @@ public class ProductRepository {
     			1, 100, 2);
     	jdbcTemplate.update("INSERT INTO inventory (product_id, quantity, warehouse_id) VALUES (?, ?, ?)",
     			2, 500, 1);    	
-    	jdbcTemplate.update("INSERT INTO inventory_movement(movement_type, notes, quantity, fechahora, from_warehouse_id, product_id, to_warehouse_id, usuario_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+    	jdbcTemplate.update("INSERT INTO inventory_movement(movement_type, notes, quantity, fechahora, warehouse_id, product_id, to_warehouse_id, usuario_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     			"Entrada", "Llega contenedor 1", 100, now, null, 1, null, 1);
-    	jdbcTemplate.update("INSERT INTO inventory_movement(movement_type, notes, quantity, fechahora, from_warehouse_id, product_id, to_warehouse_id, usuario_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+    	jdbcTemplate.update("INSERT INTO inventory_movement(movement_type, notes, quantity, fechahora, warehouse_id, product_id, to_warehouse_id, usuario_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     			"Entrada", "Llega contenedor 2", 120, now, null, 2, null, 1);
-    	jdbcTemplate.update("INSERT INTO inventory_movement(movement_type, notes, quantity, fechahora, from_warehouse_id, product_id, to_warehouse_id, usuario_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+    	jdbcTemplate.update("INSERT INTO inventory_movement(movement_type, notes, quantity, fechahora, warehouse_id, product_id, to_warehouse_id, usuario_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     			"Salida", "Venta ML", 30, now, 2, 2, null, 1);
-    	jdbcTemplate.update("INSERT INTO inventory_movement(movement_type, notes, quantity, fechahora, from_warehouse_id, product_id, to_warehouse_id, usuario_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+    	jdbcTemplate.update("INSERT INTO inventory_movement(movement_type, notes, quantity, fechahora, warehouse_id, product_id, to_warehouse_id, usuario_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
     			"Traslado", "Traslado de F a C", 45, now, 1, 1, 2, 1);*/
     	
     }
@@ -179,11 +179,11 @@ public class ProductRepository {
     
     public void manualMovement(Integer warehouseId, List<Map<String, Object>> manualMovement) {
     	OffsetDateTime now = OffsetDateTime.now();
-    	String sqlInvMovement = "INSERT INTO inventory_movement(fechahora, movement_type, quantity, to_warehouse_id, usuario_id, product_id)\n"
+    	String sqlInvMovement = "INSERT INTO inventory_movement(fechahora, movement_type, quantity, warehouse_id, usuario_id, product_id)\n"
 	    		+ "VALUES (?, ?, ?, ?, ?, ?)";
     	String sqlAdition = "UPDATE inventory SET quantity = quantity + ? WHERE product_id=? AND warehouse_id=?";
     	for (Map<String, Object> tmp : manualMovement) {
-			Integer productId = (Integer) tmp.get("id");
+			Integer productId = (Integer) tmp.get("product_id");
 			Integer mquantity = (Integer) tmp.get("mquantity");
 			if(productId != null && mquantity != null && !mquantity.equals(0)) {
 				jdbcTemplate.update(sqlInvMovement, now, MovementType.Manual.name(), mquantity, warehouseId, 1, productId);
@@ -278,21 +278,29 @@ public class ProductRepository {
         return queryForList;
     }
     
-    public List<Map<String, Object>> getInventory(String filterDate) {
-    	String sql = "SELECT pro.name, war.name AS warehouse, inv.quantity, pro.price, sub.fechahora, STRING_AGG(cod.code, ';') AS codes\n"
+    public List<Map<String, Object>> getInventory(String filterDate, Integer warehouseId) {
+    	String sql = "SELECT sub.product_id, pro.name, war.name AS warehouse, inv.quantity, pro.price, sub.fechahora, STRING_AGG(cod.code, ';') AS codes\n"
     			+ "FROM (\n"
     			+ "SELECT pro.id AS product_id, MAX(inv.fechahora) AS fechahora\n"
     			+ "FROM product pro\n"
     			+ "LEFT JOIN inventory inv ON inv.product_id = pro.id\n"
     			+ "WHERE inv.fechahora <= TO_TIMESTAMP(?, 'YYYY-MM-DD HH24:MI:SS')\n"
+    			+ (!Integer.valueOf(-1).equals(warehouseId) ? "AND warehouse_id = ?\n" : "")
     			+ "GROUP BY 1\n"
     			+ ") sub\n"
     			+ "LEFT JOIN inventory inv ON (sub.product_id = inv.product_id AND sub.fechahora = inv.fechahora)\n"
     			+ "LEFT JOIN product pro ON sub.product_id = pro.id\n"
     			+ "LEFT JOIN code cod ON pro.id = cod.product_id\n"
     			+ "LEFT JOIN warehouse war ON inv.warehouse_id = war.id\n"
-    			+ "GROUP BY 1, 2, 3, 4, 5";
-    	List<Map<String, Object>> queryForList = jdbcTemplate.queryForList(sql, filterDate + " 23:59:59");
+    			+ "GROUP BY 1, 2, 3, 4, 5, 6\n"
+    			+ "ORDER BY 2";
+    	
+    	List<Object> params = new ArrayList<>();
+    	params.add(filterDate + " 23:59:59");
+    	if (!Integer.valueOf(-1).equals(warehouseId)) {
+    	    params.add(warehouseId);
+    	}
+    	List<Map<String, Object>> queryForList = jdbcTemplate.queryForList(sql, params.toArray());
     	return queryForList;
 	}
     
@@ -314,8 +322,8 @@ public class ProductRepository {
                 	InventoryMovement tmp = new InventoryMovement();
                 	tmp.setId(rs.getInt("id"));
                 	//tmp.setProduct(new Product(rs.getInt("product_id")));
-                	//tmp.setFromWarehouse(new Warehouse(rs.getInt("from_warehouse_id")));
-                	//tmp.setToWarehouse(new Warehouse(rs.getInt("to_warehouse_id")));
+                	//tmp.setFromWarehouse(new Warehouse(rs.getInt("warehouse_id")));
+                	//tmp.setToWarehouse(new Warehouse(rs.getInt("warehouse_id")));
                 	tmp.setQuantity(rs.getInt("quantity"));
                 	tmp.setMovementType(MovementType.valueOf(rs.getString("movement_type")));
                 	tmp.setFechahora(rs.getObject("fechahora", OffsetDateTime.class));
@@ -435,7 +443,7 @@ public class ProductRepository {
 		    		+ "LEFT JOIN inventory inv ON (inv.product_id = pro.id AND inv.warehouse_id = ?)\n"
 		    		+ "WHERE inv.quantity IS NULL\n"
 		    		+ "AND cod.code IN (" + placeholders + ")";
-		    String SqlInvMovement = "INSERT INTO inventory_movement(fechahora, movement_type, notes, quantity, from_warehouse_id, usuario_id, product_id)\n"
+		    String SqlInvMovement = "INSERT INTO inventory_movement(fechahora, movement_type, notes, quantity, warehouse_id, usuario_id, product_id)\n"
 		    		+ "VALUES (?, ?, ?, ?, ?, ?, (SELECT product_id FROM code WHERE code = ? LIMIT 1))";
 		    String sqlSubtraction = "UPDATE inventory inv\n"
 		    		+ "SET quantity = inv.quantity - ?\n"

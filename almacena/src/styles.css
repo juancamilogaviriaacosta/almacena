@@ -333,3 +333,10 @@ table {
   transform: translateY(-2px);
   box-shadow: 0 8px 20px rgba(13,110,253,0.16);
 }
+
+.filter-section {
+  margin-bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
