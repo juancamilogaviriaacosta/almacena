@@ -279,7 +279,7 @@ public class ProductRepository {
     }
     
     public List<Map<String, Object>> getInventory(String filterDate, Integer warehouseId) {
-    	String sql = "SELECT sub.product_id, pro.name, war.name AS warehouse, inv.quantity, pro.price, sub.fechahora, STRING_AGG(cod.code, ';') AS codes\n"
+    	String sql = "SELECT sub.product_id, pro.name, war.name AS warehouse, inv.quantity, pro.price, to_char(sub.fechahora, 'YYYY-MM-DD HH24:MI:SS') AS fechahora, STRING_AGG(cod.code, ';') AS codes\n"
     			+ "FROM (\n"
     			+ "SELECT pro.id AS product_id, MAX(inv.fechahora) AS fechahora\n"
     			+ "FROM product pro\n"

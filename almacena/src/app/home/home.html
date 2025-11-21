@@ -30,8 +30,8 @@
     </thead>
 
     <tbody>
-        @for (p of table; track p) {
-        <tr>
+        @for (p of table; track p; let last = $last) {
+        <tr [class.total-row]="last">
             <td>{{ p.fechahora | date:'yyyy-MM-dd'}}</td>
             <td [innerHTML]="p.codes | semicolonBreak"></td>
             <td>{{ p.name }}</td>
