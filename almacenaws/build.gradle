@@ -38,12 +38,9 @@ test {
     enabled = false
 }
 
-
-def angularDir = "$projectDir/../almacena"
-
 task runShellCommand(type: Exec) {
 	println "runShellCommand"
-    commandLine 'bash', '-c', 'pwd; ls -lsa'
+    commandLine 'bash', '-c', 'cd ..; ls -lsa'
     standardOutput = new ByteArrayOutputStream()
     ext.output = {
         standardOutput.toString()
@@ -53,20 +50,4 @@ task runShellCommand(type: Exec) {
     }
 }
 
-task buildAngular(type: Exec) {
-	dependsOn runShellCommand
-	println "buildAngular"
-    workingDir angularDir
-    commandLine 'bash', '-c', 'npm install && npm run build --prod'
-}
-
-task copyAngular(type: Copy) {
-	println "copyAngular"
-    dependsOn buildAngular
-    from fileTree("$angularDir/dist/almacena/browser") {
-        include "**/*"
-    }
-    into "$projectDir/src/main/resources/static"
-}
-
-processResources.dependsOn copyAngular
+processResources.dependsOn runShellCommand
