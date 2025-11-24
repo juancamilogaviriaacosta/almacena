@@ -38,3 +38,28 @@ test {
     enabled = false
 }
 
+// ==========================
+// Angular + Spring Boot
+// ==========================
+
+// Ruta del proyecto Angular
+def angularDir = "$projectDir/../almacena"
+
+// 1. Construir Angular
+task buildAngular(type: Exec) {
+    workingDir angularDir
+    // Esto funciona en Railway (Linux). En Windows usar cmd /c
+    commandLine 'bash', '-c', 'npm install && npm run build --prod'
+}
+
+// 2. Copiar Angular al jar (a /static/)
+task copyAngular(type: Copy) {
+    dependsOn buildAngular
+    from fileTree("$angularDir/dist/almacena/browser") {
+        include "**/*"
+    }
+    into "$projectDir/src/main/resources/static"
+}
+
+// 3. Spring Boot debe ejecutar estos pasos ANTES de empaquetar
+processResources.dependsOn copyAngular
