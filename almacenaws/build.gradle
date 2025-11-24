@@ -39,7 +39,7 @@ test {
 }
 
 
-def angularDir = "../almacena"
+def angularDir = "$projectDir/../almacena"
 
 task buildAngular(type: Exec) {
     workingDir angularDir
@@ -47,6 +47,10 @@ task buildAngular(type: Exec) {
 }
 
 task copyAngular(type: Copy) {
+
+	println "Current PWD (projectDir): ${project.projectDir}"
+    println "Current PWD (user.dir): ${System.getProperty("user.dir")}"
+        
     dependsOn buildAngular
     from fileTree("$angularDir/dist/almacena/browser") {
         include "**/*"
