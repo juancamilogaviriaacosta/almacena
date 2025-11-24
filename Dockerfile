@@ -1,14 +1,14 @@
 ###############################################
 # 1) Construir FRONTEND (Angular)
 ###############################################
-FROM node:18 AS frontend-build
+FROM node:22 AS frontend-build
 
 WORKDIR /app
 COPY almacena/ ./almacena/
 
 WORKDIR /app/almacena
 RUN npm install
-RUN npm run build --prod
+RUN npm run build
 
 ###############################################
 # 2) Construir BACKEND (Spring Boot con Gradle)
