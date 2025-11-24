@@ -41,16 +41,27 @@ test {
 
 def angularDir = "$projectDir/../almacena"
 
+task runShellCommand(type: Exec) {
+	println "runShellCommand"
+    commandLine 'bash', '-c', 'pwd; ls -lsa'
+    standardOutput = new ByteArrayOutputStream()
+    ext.output = {
+        standardOutput.toString()
+    }
+    doLast {
+        println "Shell command output:\n${output()}"
+    }
+}
+
 task buildAngular(type: Exec) {
+	dependsOn runShellCommand
+	println "buildAngular"
     workingDir angularDir
     commandLine 'bash', '-c', 'npm install && npm run build --prod'
 }
 
 task copyAngular(type: Copy) {
-
-	println "Current PWD (projectDir): ${project.projectDir}"
-    println "Current PWD (user.dir): ${System.getProperty("user.dir")}"
-        
+	println "copyAngular"
     dependsOn buildAngular
     from fileTree("$angularDir/dist/almacena/browser") {
         include "**/*"
