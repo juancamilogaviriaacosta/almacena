@@ -30,7 +30,7 @@ WORKDIR /app/almacenaws
 COPY almacenaws/ ./
 
 # Copiar el dist del frontend al backend
-COPY --from=frontend-build /app/almacena/dist/almacena/ /app/almacenaws/src/main/resources/static/
+COPY --from=frontend-build /app/almacena/dist/almacena/browser/ /app/almacenaws/src/main/resources/static/
 
 # Construir el JAR
 RUN gradle build --no-daemon -x test

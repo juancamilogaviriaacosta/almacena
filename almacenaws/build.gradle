@@ -40,7 +40,7 @@ test {
 
 task runShellCommand(type: Exec) {
 	println "runShellCommand"
-    commandLine 'bash', '-c', 'cd ..; ls -lsa'
+    commandLine 'bash', '-c', 'pwd; ls -lsa; cd ..; pwd; ls -lsa'
     standardOutput = new ByteArrayOutputStream()
     ext.output = {
         standardOutput.toString()
