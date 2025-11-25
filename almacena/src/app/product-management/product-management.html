@@ -2,10 +2,10 @@
   <h1>Identificador: {{ id }}</h1>
   @if (product) {
     <form (ngSubmit)="save()" (keydown.enter)="$event.preventDefault()">
-      <div>
+      <!--<div>
         <label for="sku">SKU:</label>
         <input type="text" id="sku" name="sku" [(ngModel)]="product.sku" />
-      </div>
+      </div>-->
       @for (tmp of product.code; let i = $index; track tmp) {
         <div class="autocomplete-row">
           @if (i===0) {
@@ -24,15 +24,15 @@
         <input type="text" id="nombre" name="nombre" [(ngModel)]="product.name" />
       </div>
       <div>
+        <label for="precio">Precio:</label>
+        <input type="text" id="precio" name="precio" [(ngModel)]="product.price" />
+      </div>
+      <div>
         <label for="categoria">Categoría:</label>
         <input type="text" id="categoria" name="categoria" [(ngModel)]="product.category" />
       </div>
-      <div>
-        <label for="estado">Estado:</label>
-        <input type="text" id="estado" name="estado" [(ngModel)]="product.status" />
-      </div>
       <div style="display: flex; gap: 1rem; margin-top: 1rem;">
-        <button type="submit" (click)="save()">Guardar</button>
+        <button type="submit">Guardar</button>
         <button type="button" class="cancelar" (click)="cancel()">Cancelar</button>
       </div>
     </form>

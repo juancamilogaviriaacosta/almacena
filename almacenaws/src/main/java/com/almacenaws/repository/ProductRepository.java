@@ -109,12 +109,20 @@ public class ProductRepository {
     	}
     	
     	if(names.isEmpty()) {
-    		String sqlProduct = "UPDATE product SET category=?, name=?, sku=?, status=? WHERE id = ?";
-    		String deleteCodes = "DELETE FROM code WHERE product_id = ?";
+    		if(product.getId()==null) {
+    			String newProduct = "INSERT INTO product(category, name, price, sku, status) VALUES (?, ?, ?, ?, ?) RETURNING id";
+    			List<Map<String, Object>> newBd = jdbcTemplate.queryForList(newProduct, product.getCategory(), product.getName(),
+    					product.getPrice(), product.getSku(), product.getStatus().name());
+    			product.setId((Integer) newBd.get(0).get("id"));
+    		} else {
+	    		String sqlProduct = "UPDATE product SET category=?, name=?, sku=?, status=?, price=? WHERE id = ?";
+	    		String deleteCodes = "DELETE FROM code WHERE product_id = ?";	    	
+		    	jdbcTemplate.update(sqlProduct, product.getCategory(), product.getName(), product.getSku(),
+		    			product.getStatus().name(), product.getPrice(), product.getId());
+		    	jdbcTemplate.update(deleteCodes, product.getId());
+    		}
     		String newCodes = "INSERT INTO code(code, status, product_id) VALUES (?, ?, ?)";
-	    	jdbcTemplate.update(sqlProduct, product.getCategory(), product.getName(), product.getSku(), product.getStatus().name(), product.getId());
-	    	jdbcTemplate.update(deleteCodes, product.getId());
-	    	for (String tmp : codes) {
+    		for (String tmp : codes) {
 	    		jdbcTemplate.update(newCodes, tmp, Status.Activo.name(), product.getId());
 			}
 	    	response = "Ok";
@@ -155,10 +163,10 @@ public class ProductRepository {
     			List<Map<String, Object>> newComboBd = jdbcTemplate.queryForList(newCombo, combo.getName(), Status.Activo.name());
     			combo.setId((Integer) newComboBd.get(0).get("id"));
     		} else {
-    			String sqlProduct = "UPDATE combo SET name=?, status=? WHERE id = ?";
+    			String sqlCombo = "UPDATE combo SET name=?, status=? WHERE id = ?";
         		String deleteCodes = "DELETE FROM code WHERE combo_id = ?";
         		String deleteComboProducts = "DELETE FROM combo_product WHERE combo_id = ?";
-        		jdbcTemplate.update(sqlProduct, combo.getName(), combo.getStatus().name(), combo.getId());
+        		jdbcTemplate.update(sqlCombo, combo.getName(), combo.getStatus().name(), combo.getId());
     	    	jdbcTemplate.update(deleteCodes, combo.getId());    	    	
     	    	jdbcTemplate.update(deleteComboProducts, combo.getId());
     		}
@@ -194,12 +202,12 @@ public class ProductRepository {
 
 
     public Map<String, Object> getProduct(Integer id) {
-    	String sql = "SELECT pro.id, pro.category, pro.name, pro.sku, pro.status,\n"
+    	String sql = "SELECT pro.id, pro.category, pro.name, pro.sku, pro.status, pro.price,\n"
     			+ "'[' || STRING_AGG('{\"id\":' || cod.id || ', \"code\":\"' || cod.code || '\"}', ',') || ']' AS code\n"
     			+ "FROM product pro\n"
     			+ "LEFT JOIN code cod ON pro.id = cod.product_id\n"
     			+ "WHERE pro.id = ?\n"
-    			+ "GROUP BY 1, 2, 3, 4, 5\n"
+    			+ "GROUP BY 1, 2, 3, 4, 5, 6\n"
     			+ "ORDER BY 1";
         Map<String, Object> queryForList = jdbcTemplate.queryForList(sql, id).get(0);
         String code = (String) queryForList.get("code");
@@ -221,10 +229,10 @@ public class ProductRepository {
     }
     
     public List<Map<String, Object>> getProducts() {
-    	String sql = "SELECT pro.id, pro.category, pro.name, pro.sku, pro.status, STRING_AGG(cod.code, ';') AS codes\n"
+    	String sql = "SELECT pro.id, pro.category, pro.name, pro.sku, pro.status, pro.price, STRING_AGG(cod.code, ';') AS codes\n"
     			+ "FROM product pro\n"
     			+ "LEFT JOIN code cod ON pro.id = cod.product_id\n"
-    			+ "GROUP BY 1, 2, 3, 4, 5\n"
+    			+ "GROUP BY 1, 2, 3, 4, 5, 6\n"
     			+ "ORDER BY 3";
         List<Map<String, Object>> queryForList = jdbcTemplate.queryForList(sql);
         return queryForList;

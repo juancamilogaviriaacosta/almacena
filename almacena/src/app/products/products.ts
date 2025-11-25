@@ -3,10 +3,11 @@ import { SemicolonBreakPipe } from "../pipes/semicolon-break.pipe";
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { environment } from '../../environments/environment';
+import { DecimalPipe } from '@angular/common';
 
 @Component({
   selector: 'app-products',
-  imports: [SemicolonBreakPipe],
+  imports: [SemicolonBreakPipe, DecimalPipe],
   templateUrl: './products.html',
   styleUrl: './products.css'
 })
@@ -23,7 +24,7 @@ export class Products {
     });
   }
 
-  editProduct(id: number) {
+  editProduct(id: any) {
     this.router.navigate(['/product-management', id]);
   }
 }

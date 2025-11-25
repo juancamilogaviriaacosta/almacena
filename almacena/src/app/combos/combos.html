@@ -8,9 +8,9 @@
     <table cellpadding="8" cellspacing="0" style="width:100%; border-collapse:collapse">
         <thead>
             <tr>
-                <th>Sku</th>
+                <!--<th>Sku</th>-->
                 <th>Códigos</th>
-                <th>Producto</th>
+                <th>Nombre</th>
                 <th>Categoría</th>
                 <th>Opciones</th>
             </tr>
@@ -19,7 +19,7 @@
         <tbody>
             @for (p of table; track p) {
             <tr>
-                <td>{{ p.sku }}</td>
+                <!--<td>{{ p.sku }}</td>-->
                 <td [innerHTML]="p.codes | semicolonBreak"></td>
                 <td>{{ p.name }}</td>
                 <td>{{ p.category }}</td>

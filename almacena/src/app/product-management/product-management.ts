@@ -22,14 +22,21 @@ export class ProductManagement {
 
   ngOnInit() {
     this.id = this.route.snapshot.paramMap.get('id');
-    let tmp = this.http.get(environment.apiUrl+'/api/getProduct?id=' + this.id, { responseType: 'json' });
-    tmp.subscribe(product => {
-      this.product = product;
-      if(!(this.product.code)) {
-        this.product.code = [];
-        this.product.code.push({ code: '' });
-      }
-    });
+    if(this.id === 'new') {
+      this.product = {id: null, name: null};
+      this.product.code = [];
+      this.product.code.push({ code: '' });
+      this.product.status = 'Activo';
+    } else {
+      let tmp = this.http.get(environment.apiUrl+'/api/getProduct?id=' + this.id, { responseType: 'json' });
+      tmp.subscribe(product => {
+        this.product = product;
+        if(!(this.product.code)) {
+          this.product.code = [];
+          this.product.code.push({ code: '' });
+        }
+      });
+    }
   }
   
   save() {
