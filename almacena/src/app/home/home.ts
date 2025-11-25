@@ -24,8 +24,7 @@ export class Home implements OnInit {
 
   ngOnInit(): void {
     const today = new Date();
-    const offsetDate = new Date(today.getTime() - today.getTimezoneOffset() * 60000);
-    this.filterDate = offsetDate.toISOString().split('T')[0];
+    this.filterDate = today.toISOString().substring(0, 10);
 
     this.loadWarehouses();
     this.loadInventory();

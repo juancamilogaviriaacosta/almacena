@@ -2,7 +2,7 @@ package com.almacenaws.repository;
 
 import java.text.DecimalFormat;
 import java.time.OffsetDateTime;
-import java.time.ZoneId;
+import java.time.ZoneOffset;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -38,23 +38,7 @@ public class ProductRepository {
     @Autowired
     private JdbcTemplate jdbcTemplate;
     
-    public void initDatabase() {    	
-    	/*OffsetDateTime now = OffsetDateTime.now();
-    	
-    	jdbcTemplate.update("INSERT INTO product(sku, name, category, status) VALUES (?, ?, ?, ?)",
-    			"001", "Peine Para Mascota", "Mascotas", "Activo");
-    	jdbcTemplate.update("INSERT INTO product(sku, name, category, status) VALUES (?, ?, ?, ?)",
-    			"002", "Kit Organizadores De Maleta", "Hogar", "Activo");
-    	jdbcTemplate.update("INSERT INTO product(sku, name, category, status) VALUES (?, ?, ?, ?)",
-    			"003", "Cepillo automatico a vapor", "Hogar", "Activo");
-    	jdbcTemplate.update("INSERT INTO code(code, status, product_id) VALUES (?, ?, ?)",
-    			"MCO2024642932", "Activo", 1);
-    	jdbcTemplate.update("INSERT INTO code(code, status, product_id) VALUES (?, ?, ?)",
-    			"MCO1388163341", "Activo", 2);
-    	jdbcTemplate.update("INSERT INTO code(code, status, product_id) VALUES (?, ?, ?)",
-    			"MCO1388163342", "Activo", 2);
-    	jdbcTemplate.update("INSERT INTO code(code, status, product_id) VALUES (?, ?, ?)",
-    			"MCO2813643866", "Activo", 3);*/    	
+    public void initDatabase() {
     	jdbcTemplate.update("INSERT INTO warehouse (name) VALUES (?)",
     			"San Façon");
     	jdbcTemplate.update("INSERT INTO warehouse (name) VALUES (?)",
@@ -64,22 +48,7 @@ public class ProductRepository {
     	jdbcTemplate.update("INSERT INTO usuario (email, name, password, role, user_name) VALUES (?, ?, ?, ?, ?)",
     			"cjimportacionesco@gmail.com", "Juan David", "DQ2R789Q234", "Admin", "cjimportacionesco");
     	jdbcTemplate.update("INSERT INTO usuario (email, name, password, role, user_name) VALUES (?, ?, ?, ?, ?)",
-    			"usuariocj@gmail.com", "Cosmo", "DQ2R789Q234", "Operador", "cosmo");
-    	/*jdbcTemplate.update("INSERT INTO inventory (product_id, quantity, warehouse_id) VALUES (?, ?, ?)",
-    			1, 700, 1);
-    	jdbcTemplate.update("INSERT INTO inventory (product_id, quantity, warehouse_id) VALUES (?, ?, ?)",
-    			1, 100, 2);
-    	jdbcTemplate.update("INSERT INTO inventory (product_id, quantity, warehouse_id) VALUES (?, ?, ?)",
-    			2, 500, 1);    	
-    	jdbcTemplate.update("INSERT INTO inventory_movement(movement_type, notes, quantity, fechahora, warehouse_id, product_id, to_warehouse_id, usuario_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-    			"Entrada", "Llega contenedor 1", 100, now, null, 1, null, 1);
-    	jdbcTemplate.update("INSERT INTO inventory_movement(movement_type, notes, quantity, fechahora, warehouse_id, product_id, to_warehouse_id, usuario_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-    			"Entrada", "Llega contenedor 2", 120, now, null, 2, null, 1);
-    	jdbcTemplate.update("INSERT INTO inventory_movement(movement_type, notes, quantity, fechahora, warehouse_id, product_id, to_warehouse_id, usuario_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-    			"Salida", "Venta ML", 30, now, 2, 2, null, 1);
-    	jdbcTemplate.update("INSERT INTO inventory_movement(movement_type, notes, quantity, fechahora, warehouse_id, product_id, to_warehouse_id, usuario_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
-    			"Traslado", "Traslado de F a C", 45, now, 1, 1, 2, 1);*/
-    	
+    			"usuariocj@gmail.com", "Cosmo", "DQ2R789Q234", "Operador", "cosmo");	
     }
     
     public String updateProduct(Product product) {
@@ -187,7 +156,7 @@ public class ProductRepository {
     }
     
     public void manualMovement(Integer warehouseId, List<Map<String, Object>> manualMovement) {
-    	OffsetDateTime now = OffsetDateTime.now(ZoneId.of("America/Bogota"));
+    	OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
     	String sqlInvMovement = "INSERT INTO inventory_movement(fechahora, movement_type, quantity, warehouse_id, usuario_id, product_id)\n"
 	    		+ "VALUES (?, ?, ?, ?, ?, ?)";
     	String sqlAdition = "UPDATE inventory SET quantity = quantity + ? WHERE product_id=? AND warehouse_id=?";
@@ -348,7 +317,7 @@ public class ProductRepository {
 		response.put("errors", 0);
 		try (Workbook workbook = WorkbookFactory.create(mpf.getInputStream())) {
 			Map<String, Object[]> map = new HashMap<>();
-			OffsetDateTime now = OffsetDateTime.now(ZoneId.of("America/Bogota"));
+			OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
 			Sheet sheet = workbook.getSheetAt(0);
 			Iterator<Row> rowIterator = sheet.iterator();
 			DecimalFormat df = new DecimalFormat("#");
