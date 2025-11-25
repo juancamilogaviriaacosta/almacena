@@ -8,8 +8,6 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.ManyToOne;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 
 @Entity
 public class Inventory {
@@ -28,9 +26,8 @@ public class Inventory {
 	@Column
 	private Integer quantity;
 	
-	@Column(columnDefinition = "TIMESTAMP WITHOUT TIME ZONE")
-	@Temporal(TemporalType.TIMESTAMP)
-	private OffsetDateTime fechahora;
+	@Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private OffsetDateTime fechahora;
 
 	public Integer getId() {
 		return id;

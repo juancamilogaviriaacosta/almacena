@@ -7,8 +7,6 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.Temporal;
-import jakarta.persistence.TemporalType;
 
 @Entity
 public class Register {
@@ -18,9 +16,8 @@ public class Register {
 	@Column
 	private Integer id;
 	
-	@Column(columnDefinition = "TIMESTAMP WITHOUT TIME ZONE")
-	@Temporal(TemporalType.TIMESTAMP)
-	private OffsetDateTime fechahora;
+	@Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
+    private OffsetDateTime fechahora;
 	
 	@Column(columnDefinition = "TEXT")
 	private String information;
