@@ -1,6 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit, ViewChild} from '@angular/core';
 import { environment } from '../../environments/environment';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-movements',
@@ -16,7 +17,7 @@ export class Movements implements OnInit {
   warehouseId: number = 0;
   uploading = false;
 
-  constructor(private http: HttpClient) {}
+  constructor(private http: HttpClient, private router: Router) {}
 
   ngOnInit(): void {
     let tmp = this.http.get(environment.apiUrl+'/api/getWarehouse', { responseType: 'json' });
@@ -43,7 +44,7 @@ export class Movements implements OnInit {
           next: (response) => {
             this.uploading = false;
             (event.target as HTMLInputElement).value = '';
-            window.location.href = '/home';
+            this.router.navigate(['/home']);
           },
           error: (error) => {
             this.uploading = false;
@@ -54,7 +55,7 @@ export class Movements implements OnInit {
   }
 
   manual(warehouseId: number) {
-    window.location.href = '/manual-movement/' + warehouseId;
+    this.router.navigate(['/manual-movement', warehouseId]);
   }
 
 }

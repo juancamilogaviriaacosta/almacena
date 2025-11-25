@@ -465,14 +465,16 @@ public class ProductRepository {
 		    for (Map.Entry<String, Object[]> entry : map.entrySet()) {
 		    	String excelCode = entry.getKey();
 		    	Integer excelQuantity = (Integer) entry.getValue()[0];
-		    	try {
-		    		jdbcTemplate.update(SqlInvMovement, now, MovementType.Venta.name(), mpf.getOriginalFilename(), excelQuantity, warehouseId, 1, excelCode);
-		    		jdbcTemplate.update(sqlSubtraction, excelQuantity, excelCode, warehouseId);
-		    		response.put("success", response.get("success") + 1);
-				} catch (Exception e) {
-					jdbcTemplate.update(sqlLog, now, e.getMessage());
-					response.put("errors", response.get("errors") + 1);
-				}
+		    	if(!comboCodes.contains(excelCode)) { 
+			    	try {
+			    		jdbcTemplate.update(SqlInvMovement, now, MovementType.Venta.name(), mpf.getOriginalFilename(), excelQuantity, warehouseId, 1, excelCode);
+			    		jdbcTemplate.update(sqlSubtraction, excelQuantity, excelCode, warehouseId);
+			    		response.put("success", response.get("success") + 1);
+					} catch (Exception e) {
+						jdbcTemplate.update(sqlLog, now, e.getMessage());
+						response.put("errors", response.get("errors") + 1);
+					}
+		    	}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();

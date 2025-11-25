@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { Component } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { SemicolonBreakPipe } from '../pipes/semicolon-break.pipe';
 import { environment } from '../../environments/environment';
 import { DatePipe, DecimalPipe } from '@angular/common';
@@ -18,7 +18,7 @@ export class ManualMovement {
   table: any;
   uploading: boolean = false;
 
-  constructor(private http: HttpClient, private route: ActivatedRoute) {}
+  constructor(private http: HttpClient, private route: ActivatedRoute, private router: Router) {}
 
   ngOnInit(): void {
     this.id = this.route.snapshot.paramMap.get('id');
@@ -45,7 +45,7 @@ export class ManualMovement {
           next: (response) => {
             setTimeout(() => {
               this.uploading = false;
-              window.location.href = '/manual-movement/' + this.id;
+              this.router.navigate(['/manual-movement', this.id]);
             }, 500);
           },
           error: (error) => {
