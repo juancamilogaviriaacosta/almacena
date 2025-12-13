@@ -45,7 +45,7 @@ export class ManualMovement {
           next: (response) => {
             setTimeout(() => {
               this.uploading = false;
-              this.router.navigate(['/manual-movement', this.id]);
+              this.router.navigate(['/home']);
             }, 500);
           },
           error: (error) => {

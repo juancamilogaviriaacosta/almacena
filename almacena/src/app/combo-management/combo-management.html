@@ -28,6 +28,10 @@
                (input)="onProductInput()"
                (keydown.enter)="addProductFromAutocomplete()"
                placeholder="Escribe para buscar..."
+               name="no-autocomplete"
+               autocomplete="off"
+               readonly
+               (focus)="$event.target.removeAttribute('readonly')"
                />
         <datalist id="productsList">
           @for (p of filteredProducts; track p) {
@@ -36,14 +40,17 @@
         </datalist>
         <button type="button" class="circle-btn" (click)="addProductFromAutocomplete()">+</button>
       </div>
-      @for (tmp2 of combo.product; let i = $index; track tmp2) {
+      @for (tmp2 of combo.productDetail; let i = $index; track tmp2) {
         <div>
           @if (i===0) {
             <label>Productos:</label>
           } @else {
             <label>&nbsp;</label>
           }
-          <input type="text" name="product{{i}}" [(ngModel)]="tmp2.name" />
+          <input type="text" name="productDetail{{i}}" [(ngModel)]="tmp2.product.name" readonly/>
+          <input type="number" name="quantity{{i}}" [(ngModel)]="tmp2.quantity" min="1" step="1" 
+            onkeydown="return event.key !== '-' && event.key !== '+' && event.key !== 'e'" style="max-width: 60px;"/>
+          <button type="button" class="circle-btn-red" (click)="removeProductFromAutocomplete(i)">x</button>
         </div>
       }
       <div style="display: flex; gap: 1rem; margin-top: 1rem;">

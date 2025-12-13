@@ -9,9 +9,6 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.JoinColumn;
-import jakarta.persistence.JoinTable;
-import jakarta.persistence.ManyToMany;
 import jakarta.persistence.OneToMany;
 
 @Entity
@@ -29,13 +26,8 @@ public class Combo {
 	@Enumerated(EnumType.STRING)
 	private Status status;
 	
-	@ManyToMany
-	@JoinTable(
-	    name = "combo_product",
-	    joinColumns = @JoinColumn(name = "combo_id"),
-	    inverseJoinColumns = @JoinColumn(name = "product_id")
-	)
-	private List<Product> product;
+	@OneToMany
+	private List<ProductDetail> productDetail;
 	
 	@OneToMany(mappedBy = "combo")
 	private List<Code> code;
@@ -64,12 +56,12 @@ public class Combo {
 		this.status = status;
 	}
 
-	public List<Product> getProduct() {
-		return product;
+	public List<ProductDetail> getProductDetail() {
+		return productDetail;
 	}
 
-	public void setProduct(List<Product> product) {
-		this.product = product;
+	public void setProductDetail(List<ProductDetail> productDetail) {
+		this.productDetail = productDetail;
 	}
 
 	public List<Code> getCode() {

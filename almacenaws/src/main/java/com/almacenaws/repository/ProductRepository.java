@@ -28,6 +28,7 @@ import com.almacenaws.model.Combo;
 import com.almacenaws.model.InventoryMovement;
 import com.almacenaws.model.MovementType;
 import com.almacenaws.model.Product;
+import com.almacenaws.model.ProductDetail;
 import com.almacenaws.model.Status;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -135,19 +136,28 @@ public class ProductRepository {
     		} else {
     			String sqlCombo = "UPDATE combo SET name=?, status=? WHERE id = ?";
         		String deleteCodes = "DELETE FROM code WHERE combo_id = ?";
-        		String deleteComboProducts = "DELETE FROM combo_product WHERE combo_id = ?";
+        		String deleteComboProductDetail = "DELETE FROM combo_product_detail WHERE combo_id = ?";
+        		String deleteProductDetail = "DELETE FROM product_detail pd\n"
+        				+ "WHERE NOT EXISTS (\n"
+        				+ "    SELECT 1\n"
+        				+ "    FROM combo_product_detail cpd\n"
+        				+ "    WHERE cpd.product_detail_id = pd.id\n"
+        				+ ")";
         		jdbcTemplate.update(sqlCombo, combo.getName(), combo.getStatus().name(), combo.getId());
     	    	jdbcTemplate.update(deleteCodes, combo.getId());    	    	
-    	    	jdbcTemplate.update(deleteComboProducts, combo.getId());
+    	    	jdbcTemplate.update(deleteComboProductDetail, combo.getId());
+    	    	jdbcTemplate.update(deleteProductDetail);
     		}
     		String newCodes = "INSERT INTO code(code, status, combo_id) VALUES (?, ?, ?)";    		
-    		String createComboProducts = "INSERT INTO combo_product(combo_id, product_id)	VALUES (?, ?)";
+    		String createProductDetail = "INSERT INTO product_detail(quantity, product_id) VALUES (?, ?) RETURNING ID";
+    		String createcomboProductDetail = "INSERT INTO combo_product_detail(combo_id, product_detail_id) VALUES (?, ?)";
 	    	for (String tmp : codes) {
 	    		jdbcTemplate.update(newCodes, tmp, Status.Activo.name(), combo.getId());
 			}
-	    	if(combo.getProduct() != null) {
-	    		for (Product tmp : combo.getProduct()) {
-	    			jdbcTemplate.update(createComboProducts, combo.getId(), tmp.getId());
+	    	if(combo.getProductDetail() != null) {
+	    		for (ProductDetail tmp : combo.getProductDetail()) {
+	    			List<Integer> pdId = jdbcTemplate.queryForList(createProductDetail, Integer.class, tmp.getQuantity(), tmp.getProduct().getId());
+	    			jdbcTemplate.update(createcomboProductDetail, combo.getId(), pdId.get(0));
 				}
 	    	}
 	    	response = "Ok";
@@ -199,7 +209,7 @@ public class ProductRepository {
     }
     
     public List<Map<String, Object>> getProducts() {
-    	String sql = "SELECT pro.id, pro.category, pro.name, pro.sku, pro.status, pro.price, STRING_AGG(cod.code, ';') AS codes\n"
+    	String sql = "SELECT pro.id, pro.category, pro.name, pro.sku, pro.status, pro.price, STRING_AGG(DISTINCT cod.code, ';' ORDER BY cod.code) AS codes\n"
     			+ "FROM product pro\n"
     			+ "LEFT JOIN code cod ON pro.id = cod.product_id\n"
     			+ "GROUP BY 1, 2, 3, 4, 5, 6\n"
@@ -209,7 +219,7 @@ public class ProductRepository {
     }
     
     public List<Map<String, Object>> getCombos() {
-    	String sql = "SELECT com.id, com.name, com.status, STRING_AGG(cod.code, ';') AS codes\n"
+    	String sql = "SELECT com.id, com.name, com.status, STRING_AGG(DISTINCT cod.code, ';' ORDER BY cod.code) AS codes\n"
     			+ "FROM combo com\n"
     			+ "LEFT JOIN code cod ON com.id = cod.combo_id\n"
     			+ "GROUP BY 1, 2, 3\n"
@@ -221,17 +231,18 @@ public class ProductRepository {
     public Map<String, Object> getCombo(Integer id) {
     	String sql = "SELECT com.id, com.name, com.status,\n"
     			+ "'[' || STRING_AGG(DISTINCT '{\"id\":' || cod.id || ', \"code\":\"' || cod.code || '\"}', ',') || ']' AS code,\n"
-    			+ "'[' || STRING_AGG(DISTINCT '{\"id\":' || pro.id || ', \"name\":\"' || pro.name || '\"}', ',') || ']' AS product\n"
+    			+ "'[' || STRING_AGG(DISTINCT '{\"product\":{\"id\":' || pro.id || ', \"name\":\"' || pro.name || '\"}' || ', \"quantity\":' || prd.quantity || '}', ',') || ']' AS productDetail\n"
     			+ "FROM combo com\n"
     			+ "LEFT JOIN code cod ON com.id = cod.combo_id\n"
-    			+ "LEFT JOIN combo_product cpr ON com.id = cpr.combo_id\n"
-    			+ "LEFT JOIN product pro ON cpr.product_id = pro.id\n"
+    			+ "LEFT JOIN combo_product_detail cpd ON com.id = cpd.combo_id\n"
+    			+ "LEFT JOIN product_detail prd ON cpd.product_detail_id = prd.id\n"
+    			+ "LEFT JOIN product pro ON prd.product_id = pro.id\n"
     			+ "WHERE com.id = ?\n"
     			+ "GROUP BY 1, 2, 3\n"
     			+ "ORDER BY 1";
         Map<String, Object> queryForList = jdbcTemplate.queryForList(sql, id).get(0);
         String code = (String) queryForList.get("code");
-        String product = (String) queryForList.get("product");
+        String productDetail = (String) queryForList.get("productDetail");
         try {
         	if(code != null) {
         		List<Map<String, Object>> json = new ObjectMapper().readValue(code, new TypeReference<List<Map<String, Object>>>() {});
@@ -243,12 +254,12 @@ public class ProductRepository {
         		queryForList.put("code", codes);
         	}
         	
-        	if(product != null) {
-        		List<Map<String, Object>> json = new ObjectMapper().readValue(product, new TypeReference<List<Map<String, Object>>>() {});
-            	queryForList.put("product", json);        	
+        	if(productDetail != null) {
+        		List<Map<String, Object>> json = new ObjectMapper().readValue(productDetail, new TypeReference<List<Map<String, Object>>>() {});
+            	queryForList.put("productDetail", json);        	
         	} else {
         		List<Map<String, Object>> productsLists = new ArrayList<>();
-        		queryForList.put("product", productsLists);
+        		queryForList.put("productDetail", productsLists);
         	}        	
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -257,7 +268,7 @@ public class ProductRepository {
     }
     
     public List<Map<String, Object>> getInventory(String filterDate, Integer warehouseId) {
-    	String sql = "SELECT sub.product_id, pro.name, war.name AS warehouse, inv.quantity, pro.price, to_char(sub.fechahora, 'YYYY-MM-DD HH24:MI:SS') AS fechahora, STRING_AGG(cod.code, ';') AS codes\n"
+    	String sql = "SELECT sub.product_id, pro.name, war.name AS warehouse, inv.quantity, pro.price, to_char(sub.fechahora, 'YYYY-MM-DD HH24:MI:SS') AS fechahora, STRING_AGG(DISTINCT cod.code, ';' ORDER BY cod.code) AS codes\n"
     			+ "FROM (\n"
     			+ "SELECT pro.id AS product_id, MAX(inv.fechahora) AS fechahora\n"
     			+ "FROM product pro\n"
@@ -310,11 +321,27 @@ public class ProductRepository {
                     return tmp;
                 });
     }
+    
+    public Integer getDbId(List<Map<String, Object>> allProducts, String code) {
+    	for (Map<String, Object> map : allProducts) {
+			if(code.equals(map.get("code"))) {
+				return (Integer) map.get("id");
+			}
+		}
+    	return null;
+    }
 
 	public Map<String, Integer> uploadFile(String fileId, Integer warehouseId, MultipartFile mpf) {
 		Map<String, Integer> response = new HashMap<>();
 		response.put("success", 0);
 		response.put("errors", 0);
+		
+		String sqlAllProducts = "SELECT cod.code, pro.id\n"
+				+ "FROM product pro\n"
+				+ "LEFT JOIN code cod ON pro.id = cod.product_id\n"
+				+ "ORDER BY 2";
+    	List<Map<String, Object>> allProducts = jdbcTemplate.queryForList(sqlAllProducts);
+
 		try (Workbook workbook = WorkbookFactory.create(mpf.getInputStream())) {
 			Map<String, Object[]> map = new HashMap<>();
 			OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
@@ -326,26 +353,28 @@ public class ProductRepository {
 		        try {
 		        	if("ml".equals(fileId)) {
 		        		String code = row.getCell(16).getStringCellValue();
+		        		Integer id = getDbId(allProducts, code);
 			        	String name = row.getCell(17).getStringCellValue();
 			        	Integer price = ((Double) row.getCell(19).getNumericCellValue()).intValue();
 						Integer quantity = ((Double) row.getCell(6).getNumericCellValue()).intValue();
 			        	if(code.startsWith("MCO")) {
 			        		if(map.get(code) == null) {
-			        			map.put(code, new Object[] {0, name, price});
+			        			map.put(code, new Object[] {0, name, price, id});
 			        		}
-			        		map.put(code, new Object[] {(Integer) map.get(code)[0] + quantity, name, price});
+			        		map.put(code, new Object[] {(Integer) map.get(code)[0] + quantity, name, price, id});
 			        	}
 		        	} else {
 		        		String code = df.format(row.getCell(26).getNumericCellValue());
+		        		Integer id = getDbId(allProducts, code);
 			        	String name = row.getCell(29).getStringCellValue();
 						Integer price = ((Double) row.getCell(24).getNumericCellValue()).intValue();
 						Integer quantity = ((Double) row.getCell(31).getNumericCellValue()).intValue();
 						//FIXME
 			        	//if(code.startsWith("MCO")) {
 			        		if(map.get(code) == null) {
-			        			map.put(code, new Object[] {0, name, price});
+			        			map.put(code, new Object[] {0, name, price, id});
 			        		}
-			        		map.put(code, new Object[] {(Integer) map.get(code)[0] + quantity, name, price});
+			        		map.put(code, new Object[] {(Integer) map.get(code)[0] + quantity, name, price, id});
 			        	//}
 		        	}
 				} catch (Exception e) {
@@ -384,69 +413,72 @@ public class ProductRepository {
 			    		jdbcTemplate.update(sqlNewComboCode, excelCode, Status.Activo.name(), newCombo.get(0).get("id"));
 		    	    } else {
 		    	    	List<Map<String, Object>> newProduct = jdbcTemplate.queryForList(sqlNewProduct, name, Status.Incompleto.name(), price);
-			    		jdbcTemplate.update(sqlNewCode, excelCode, Status.Activo.name() ,newProduct.get(0).get("id"));
+			    		jdbcTemplate.update(sqlNewCode, excelCode, Status.Activo.name(), newProduct.get(0).get("id"));
 						jdbcTemplate.update(sqlNewInventory, 0, newProduct.get(0).get("id"), warehouseId, now);
+						map.get(excelCode)[3] = newProduct.get(0).get("id");
 		    	    }
 		    	}
 			}
 		    
 		    if(!comboCodes.isEmpty()) {
 			    String comboPlaceholders = String.join(",", Collections.nCopies(comboCodes.size(), "?"));
-			    String sqlComboToProducts = "SELECT ccd.code AS cmb_code, STRING_AGG(cpr.code, ';') AS pro_codes\n"
-			    		+ "FROM combo_product cop\n"
-			    		+ "INNER JOIN combo cmb ON cop.combo_id = cmb.id\n"
+			    String sqlComboToProducts = "SELECT DISTINCT ccd.code AS cmb_code, pro.id AS pro_id, prd.quantity\n"
+			    		+ "FROM combo cmb\n"
 			    		+ "INNER JOIN code ccd ON ccd.combo_id = cmb.id\n"
-			    		+ "INNER JOIN product pro ON cop.product_id = pro.id\n"
-			    		+ "INNER JOIN code cpr ON pro.id = cpr.product_id\n"
+			    		+ "INNER JOIN combo_product_detail cpd ON cmb.id = cpd.combo_id\n"
+			    		+ "INNER JOIN product_detail prd ON cpd.product_detail_id = prd.id\n"
+			    		+ "INNER JOIN product pro ON prd.product_id = pro.id\n"
 			    		+ "WHERE 1 = 1\n"
-			    		+ "AND ccd.code IN (" + comboPlaceholders + ")\n"
-	    				+ "GROUP BY ccd.code";
+			    		+ "AND ccd.code IN (" + comboPlaceholders + ")\n";
 			    List<Map<String, Object>> comboToProducts = jdbcTemplate.queryForList(sqlComboToProducts, comboCodes.toArray());
-			    for (Map<String, Object> tmp : comboToProducts) {
+			    for (int i = 0; i < comboToProducts.size(); i++) {
+			    	Map<String, Object> tmp = comboToProducts.get(i);
 					String cmbCode = (String) tmp.get("cmb_code");
-					String[] proCodes = ((String) tmp.get("pro_codes")).split(";");
+					Integer proId = (Integer) tmp.get("pro_id");
+					Integer productQuantity = (Integer) tmp.get("quantity");
 					Integer cmbQuantity = (Integer) map.get(cmbCode)[0];
-					map.remove(cmbCode);
-					for (String proCode : proCodes) {
-						Integer prodQuantity = map.get(proCode)[0] == null ? 0 : (Integer) map.get(proCode)[0];
-						map.put(proCode, new Object[] {cmbQuantity + prodQuantity, null});
-					}
+					map.put("combo " + i, new Object[] {cmbQuantity * productQuantity, "name", "price", proId});
+				}
+			    for (String code : comboCodes) {
+			    	map.remove(code);
 				}
 		    }
 		    
-		    placeholders = String.join(",", Collections.nCopies(map.keySet().size(), "?"));		    
+		    placeholders = String.join(",", Collections.nCopies(map.keySet().size(), "?"));
 		    String sqlValidation = "SELECT pro.id, inv.quantity\n"
 		    		+ "FROM product pro\n"
 		    		+ "LEFT JOIN code cod ON pro.id = cod.product_id\n"
 		    		+ "LEFT JOIN inventory inv ON (inv.product_id = pro.id AND inv.warehouse_id = ?)\n"
 		    		+ "WHERE inv.quantity IS NULL\n"
-		    		+ "AND cod.code IN (" + placeholders + ")";
+		    		+ "AND pro.id IN (" + placeholders + ")";		    
 		    String SqlInvMovement = "INSERT INTO inventory_movement(fechahora, movement_type, notes, quantity, warehouse_id, usuario_id, product_id)\n"
-		    		+ "VALUES (?, ?, ?, ?, ?, ?, (SELECT product_id FROM code WHERE code = ? LIMIT 1))";
+		    		+ "VALUES (?, ?, ?, ?, ?, ?, ?)";
 		    String sqlSubtraction = "UPDATE inventory inv\n"
 		    		+ "SET quantity = inv.quantity - ?\n"
 		    		+ "FROM product pro\n"
-		    		+ "LEFT JOIN code cod ON pro.id = cod.product_id\n"
 		    		+ "WHERE inv.product_id = pro.id\n"
-		    		+ "AND cod.code = ?\n"
+		    		+ "AND pro.id = ?\n"
 		    		+ "AND inv.warehouse_id = ?";
 		    String sqlLog = "INSERT INTO register(fechahora, information) VALUES (?, ?)";
-		    
-			Object[] array = new Object[map.keySet().size() + 1];
-			array[0] = warehouseId;
-			System.arraycopy(map.keySet().toArray(), 0, array, 1, map.keySet().size());				    
-		    List<Map<String, Object>> inventory = jdbcTemplate.query(sqlValidation, new ColumnMapRowMapper(), array);
+		    		    
+		    List<Integer> params = new ArrayList<>(map.size() + 1);
+		    params.add(warehouseId);
+		    for (Object[] val : map.values()) {
+		    	params.add((Integer) val[3]);
+		    }
+		    List<Map<String, Object>> inventory = jdbcTemplate.query(sqlValidation, new ColumnMapRowMapper(), params.toArray());
 		    for (Map<String, Object> tmp : inventory) {
-				jdbcTemplate.update(sqlNewInventory, 0, tmp.get("id"), warehouseId);
+				jdbcTemplate.update(sqlNewInventory, 0, tmp.get("id"), warehouseId, now);
 			}		    
 		    
 		    for (Map.Entry<String, Object[]> entry : map.entrySet()) {
 		    	String excelCode = entry.getKey();
 		    	Integer excelQuantity = (Integer) entry.getValue()[0];
+		    	Integer productId = (Integer) entry.getValue()[3];
 		    	if(!comboCodes.contains(excelCode)) { 
 			    	try {
-			    		jdbcTemplate.update(SqlInvMovement, now, MovementType.Venta.name(), mpf.getOriginalFilename(), excelQuantity, warehouseId, 1, excelCode);
-			    		jdbcTemplate.update(sqlSubtraction, excelQuantity, excelCode, warehouseId);
+			    		jdbcTemplate.update(SqlInvMovement, now, MovementType.Venta.name(), mpf.getOriginalFilename(), excelQuantity, warehouseId, 1, productId);
+			    		jdbcTemplate.update(sqlSubtraction, excelQuantity, productId, warehouseId);
 			    		response.put("success", response.get("success") + 1);
 					} catch (Exception e) {
 						jdbcTemplate.update(sqlLog, now, e.getMessage());

@@ -99,11 +99,22 @@ export class ComboManagement {
       return;
     }
     const match = this.allProducts.find(p => p.name === this.selectedProduct);
-    if (!this.combo.product) {
-      this.combo.product = [];
+    if (!this.combo.productDetail) {
+      this.combo.productDetail = [];
     }
-    this.combo.product.push({id: match.id, name: match.name});
+
+    const item = this.combo.productDetail.find((pd: { product: { id: any; }; }) => pd.product.id === match.id);
+    if (item) {
+      item.quantity++;
+    } else {
+      this.combo.productDetail.push({quantity: 1, product: {id: match.id, name: match.name}});
+    }
+    
     this.selectedProduct = '';
     this.filteredProducts = this.allProducts;
+  }
+
+  removeProductFromAutocomplete(i: number) {
+    this.combo.productDetail.splice(i, 1);
   }
 }

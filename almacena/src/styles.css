@@ -188,7 +188,7 @@ table {
   color: #333;
 }
 
-.formulario input[type="text"] {
+.formulario input {
   flex: 1;
   padding: 0.5rem;
   border: 1px solid #ddd;
@@ -260,7 +260,35 @@ table {
 }
 
 .formulario button[class="circle-btn"]:hover {
-  background: #2563eb;
+  background: #eb2525;
+  box-shadow: 0 4px 16px rgba(13, 110, 253, 0.18);
+}
+
+.formulario .circle-btn-red-container {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.formulario button[class="circle-btn-red"] {
+  all: unset;
+  width: 32px;
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #eb2525;
+  color: #fff;
+  border-radius: 50%;
+  font-size: 1.3rem;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(13, 110, 253, 0.10);
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+.formulario button[class="circle-btn-red"]:hover {
+  background: #eb2525;
   box-shadow: 0 4px 16px rgba(13, 110, 253, 0.18);
 }
 
