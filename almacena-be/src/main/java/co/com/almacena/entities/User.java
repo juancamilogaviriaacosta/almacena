@@ -23,7 +23,7 @@ public class User {
     private Tenant tenant;
 	
 	@Column
-    private String userName;
+    private String username;
 	
 	@Column
     private String name;
@@ -41,14 +41,17 @@ public class User {
 	public User() {
 	}
 
-	public User(Long id, String userName, String name, String email, Role role, String password) {
+	public User(Long id, Tenant tenant, String username, String name, String email, Role role, String password) {
 		this.id = id;
-		this.userName = userName;
+		this.tenant = tenant;
+		this.username = username;
 		this.name = name;
 		this.email = email;
 		this.role = role;
 		this.password = password;
 	}
+
+
 
 	public Long getId() {
 		return id;
@@ -58,12 +61,20 @@ public class User {
 		this.id = id;
 	}
 
-	public String getUserName() {
-		return userName;
+	public Tenant getTenant() {
+		return tenant;
 	}
 
-	public void setUserName(String userName) {
-		this.userName = userName;
+	public void setTenant(Tenant tenant) {
+		this.tenant = tenant;
+	}
+
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
 	}
 
 	public String getName() {

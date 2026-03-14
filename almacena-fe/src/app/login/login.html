@@ -1,0 +1,47 @@
+<div class="login-container">
+
+  <div class="login-card">
+
+    <h2>Iniciar Sesión</h2>
+
+    <form #loginForm="ngForm" (ngSubmit)="login(loginForm)">
+
+      <div class="form-group">
+        <label>Usuario</label>
+        <input
+          type="text"
+          name="username"
+          [(ngModel)]="model.username"
+          required
+          placeholder="Ingrese su usuario"
+        />
+
+        <small *ngIf="loginForm.submitted && !model.username">
+          Usuario requerido
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label>Contraseña</label>
+        <input
+          type="password"
+          name="password"
+          [(ngModel)]="model.password"
+          required
+          placeholder="Ingrese su contraseña"
+        />
+
+        <small *ngIf="loginForm.submitted && !model.password">
+          Contraseña requerida
+        </small>
+      </div>
+
+      <button type="submit">
+        Ingresar
+      </button>
+
+    </form>
+
+  </div>
+
+</div>
