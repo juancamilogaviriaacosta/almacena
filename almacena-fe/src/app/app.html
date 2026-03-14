@@ -1,42 +1,14 @@
-<body>
-   <!-- HEADER -->
-   <div class="header">
-      <div class="top-bar">
-         <div class="logo" (click)="goToHome()" style="cursor: pointer;">
-            Almacena<span>Labs</span>
-         </div>
-         <div class="search-container">
-            <input
-               class="search-input"
-               id="search"
-               placeholder="Buscar productos..."
-               >
-            <button
-               class="search-btn"
-               >
-            🔍
-            </button>
-         </div>
-      </div>
-      <div class="nav">
-         <div class="nav-left">
-            @if(auth.isUser()) {
-               <a [routerLink]="['/cart']">Carrito</a>
-            }
-            
-            @if(auth.isAdmin()) {
-               <a [routerLink]="['/admin-products']">Administrar Productos</a>
-               <a [routerLink]="['/admin-users']">Administrar Usuarios</a>
-            }
-         </div>
-         <div class="nav-right">
-            @if(auth.isloggedIn()) {
-               <a (click)="auth.logout()" style="cursor: pointer;">Cerrar Sesión</a>
-            } @else {
-               <a [routerLink]="['/login']">Iniciar Sesión</a>
-            }
-         </div>
-      </div>
-   </div>   
-</body>
-<router-outlet />
+<header>
+   <div class="logo">DockSync</div>
+   <nav>
+      <a href="#">About</a>
+      <a href="#">Solutions</a>
+      <a href="#">Knowledge</a>
+      <a href="#">Execution</a>
+   </nav>
+   <div class="nav-actions">
+      <a class="login-btn" href="#">Login</a>
+      <a class="contact-btn" href="#">Contact Us</a>
+   </div>
+</header>
+<router-outlet/>
