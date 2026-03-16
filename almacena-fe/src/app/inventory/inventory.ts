@@ -21,14 +21,14 @@ export class Inventory {
   totalPrice = 0;
 
   constructor(private http: HttpClient,
-    private route: ActivatedRoute,
+    private ar: ActivatedRoute,
     private cd: ChangeDetectorRef) {
   }
 
   ngOnInit(): void {
     this.filterDate = Utils.today();
-    this.warehouses = this.route.snapshot.data['preload'].warehouses;
-    this.table = this.route.snapshot.data['preload'].table;
+    this.warehouses = this.ar.snapshot.data['preload'].warehouses;
+    this.table = this.ar.snapshot.data['preload'].table;
     this.calculateTotal();
   }
 

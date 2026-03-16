@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 
 @Component({
   selector: 'app-movements',
@@ -16,13 +16,12 @@ export class Movements  implements OnInit {
   warehouseId: number = 0;
   uploading = false;
 
-  constructor(private http: HttpClient, private router: Router) {}
+  constructor(private http: HttpClient,
+    private router: Router,
+    private ar: ActivatedRoute) {}
 
   ngOnInit(): void {
-    let tmp = this.http.get('/api/getWarehouse', { responseType: 'json' });
-    tmp.subscribe(table => {
-      this.table = table;
-    });
+    this.table = this.ar.snapshot.data['preload'].warehouses;
   }
 
   onMLClick(fileId: string, warehouseId: number) {

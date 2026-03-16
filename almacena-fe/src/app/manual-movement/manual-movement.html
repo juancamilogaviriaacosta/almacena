@@ -4,24 +4,26 @@
             <table>
                 <thead>
                     <tr>
-                        <th>Código</th>
-                        <th>Nombre</th>
-                        <th>Opciones</th>
+                        <th>Último movimiento</th>
+                        <th>Códigos</th>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                        <th>Precio</th>
+                        <th>Ubicación</th>
+                        <th>Manual</th>
                     </tr>
                 </thead>
-
                 <tbody>
                     @for (p of table; track $index) {
                     <tr>
-                        <td>{{ p.id }}</td>
+                        <td>{{ p.fechahora | date:'yyyy-MM-dd'}}</td>
+                        <td [innerHTML]="p.codes | semicolonBreak"></td>
                         <td>{{ p.name }}</td>
-                        <td class="div-left">
-                            <button id="ml" (click)="onMLClick('ml', p.id)">Subir archivo ML</button>
-                            &nbsp;
-                            <input type="file" #mlInput style="display:none" (change)="onMLFileSelected($event)">
-                            <button id="dr" (click)="onMLClick('dr', p.id)">Subir archivo Dropi</button>
-                            &nbsp;
-                            <button id="manual" (click)="manual(p.id)">Manual</button>
+                        <td>{{ p.quantity }}</td>
+                        <td>{{ p.price | number: '1.0-2'}}</td>
+                        <td>{{ p.warehouse }}</td>
+                        <td class="col-manual">
+                            <input type="number" name="mquantity{{$index}}" step="1" [(ngModel)]="p.mquantity">
                         </td>
                     </tr>
                     }
