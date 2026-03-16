@@ -4,32 +4,20 @@
     <form #loginForm="ngForm">
       <div class="form-group">
         <label>Usuario</label>
-        <input
-          type="text"
-          name="username"
-          [(ngModel)]="model.username"
-          required
-          placeholder="Ingrese su usuario"
-        />
-        <small *ngIf="loginForm.submitted && !model.username">
-          Usuario requerido
-        </small>
+        <input type="text" name="username" [(ngModel)]="model.username" required placeholder="Ingrese su usuario" />
+        @if(loginForm.submitted && !model.username){
+        <small>Usuario requerido</small>
+        }
       </div>
       <div class="form-group">
         <label>Contraseña</label>
-        <input
-          type="password"
-          name="password"
-          [(ngModel)]="model.password"
-          required
-          placeholder="Ingrese su contraseña"
-        />
-        <small *ngIf="loginForm.submitted && !model.password">
-          Contraseña requerida
-        </small>
+        <input type="password" name="password" [(ngModel)]="model.password" required placeholder="Ingrese su contraseña" />
+        @if(loginForm.submitted && !model.password) {
+        <small>Contraseña requerida</small>
+        }
       </div>
       <div class="buttons">
-        <button type="submit" class="btn-login" (click)="auth.login()">Ingresar</button>
+        <button type="submit" class="btn-login" (click)="auth.login(model)">Ingresar</button>
         <button type="button" class="btn-cancel" (click)="auth.logout()">Cancelar</button>
       </div>
     </form>

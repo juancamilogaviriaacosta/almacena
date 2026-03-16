@@ -1,7 +1,25 @@
 <main class="container">
     <section class="grid">
         <div class="card chart-max">
-            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Fecha</th>
+                        <th>Descripción</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @for (p of (table | async) ; track $index) {
+                    <tr>
+                        <td>{{ p.id }}</td>
+                        <td>{{ p.fechahora | date:'dd/MM/yyyy HH:mm:ss'}}</td>
+                        <td>{{ p.information }}</td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
         </div>
     </section>
 </main>

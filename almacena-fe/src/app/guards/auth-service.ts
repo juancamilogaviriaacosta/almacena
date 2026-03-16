@@ -31,16 +31,15 @@ export class AuthService {
     this.router.navigate(['/login']);
   }
 
-  login() {
-    localStorage.setItem("role", "Admin");
-    this.router.navigate(['/dashboard']);
-
-    /*this.http.post('/api/auth', this.model).subscribe({
+  login(form: any) {
+    this.http.post('/api/auth', form).subscribe({
       next: (response:any) => {
-        if(response && response['id'] && response['role']) {
-          localStorage.setItem('id', response['id']);
-          localStorage.setItem('role', response['role']);
-          window.location.href = '/';
+        if(response && response.id && response.role && response.tenant) {
+          localStorage.setItem('role', response.role);
+          localStorage.setItem('id', response.id);
+          localStorage.setItem('tenantId', response.tenant.id);
+          localStorage.setItem('tenantName', response.tenant.name);
+          this.router.navigate(['/dashboard']);
         } else {
           alert('Error en usuario o contraseña');
         }
@@ -48,13 +47,12 @@ export class AuthService {
       error: (error) => {
         alert('Error en usuario o contraseña');
       }
-    });*/
+    });
   
   }
 
   logout() {    
-    localStorage.removeItem('id');
-    localStorage.removeItem("role");
+    localStorage.clear();
     this.router.navigate(['/']);
   }
 }

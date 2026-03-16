@@ -33,25 +33,37 @@ import co.com.almacena.entities.InventoryMovement;
 import co.com.almacena.entities.MovementType;
 import co.com.almacena.entities.Product;
 import co.com.almacena.entities.ProductDetail;
+import co.com.almacena.entities.Role;
 import co.com.almacena.entities.Status;
+import co.com.almacena.entities.Tenant;
+import co.com.almacena.entities.User;
+import co.com.almacena.entities.Warehouse;
+import co.com.almacena.repositories.TenantRepository;
+import co.com.almacena.repositories.UserRepository;
+import co.com.almacena.repositories.WarehouseRepository;
 
 @Service
 public class InventoryService {
 	
 	@Autowired
     private JdbcTemplate jdbcTemplate;
+	
+	@Autowired
+	private WarehouseRepository wr;
+	
+	@Autowired
+	private TenantRepository tr;
+	
+	@Autowired
+	private UserRepository ur;
     
     public void initDatabase() {
-    	jdbcTemplate.update("INSERT INTO warehouse (name) VALUES (?)",
-    			"San Façon");
-    	jdbcTemplate.update("INSERT INTO warehouse (name) VALUES (?)",
-    			"T20");
-    	jdbcTemplate.update("INSERT INTO warehouse (name) VALUES (?)",
-    			"Fontibón");
-    	jdbcTemplate.update("INSERT INTO usuario (email, name, password, role, user_name) VALUES (?, ?, ?, ?, ?)",
-    			"cjimportacionesco@gmail.com", "Juan David", "DQ2R789Q234", "Admin", "cjimportacionesco");
-    	jdbcTemplate.update("INSERT INTO usuario (email, name, password, role, user_name) VALUES (?, ?, ?, ?, ?)",
-    			"usuariocj@gmail.com", "Cosmo", "DQ2R789Q234", "Operador", "cosmo");	
+    	Tenant t1 = tr.save(new Tenant(null, "CJ Importaciones CO", "Basic"));
+    	wr.save(new Warehouse(null, t1, "San Façon"));
+    	wr.save(new Warehouse(null, t1, "T20"));
+    	wr.save(new Warehouse(null, t1, "Fontibón"));
+    	ur.save(new User(null, t1, "cjimportacionesco", "Juan David", "cjimportacionesco@gmail.com", Role.Admin, "123456"));
+    	ur.save(new User(null, t1, "usuario1cj1co", "Usuario 1", "usuario1cj1co@gmail.com", Role.User, "123456"));	
     }
     
     public String updateProduct(Product product) {
@@ -273,16 +285,16 @@ public class InventoryService {
     	String sql = "SELECT sub.product_id, pro.name, war.name AS warehouse, inv.quantity, pro.price, to_char(sub.fechahora, 'YYYY-MM-DD HH24:MI:SS') AS fechahora, STRING_AGG(DISTINCT cod.code, ';' ORDER BY cod.code) AS codes\n"
     			+ "FROM (\n"
     			+ "SELECT pro.id AS product_id, MAX(inv.fechahora) AS fechahora\n"
-    			+ "FROM product pro\n"
-    			+ "LEFT JOIN inventory inv ON inv.product_id = pro.id\n"
+    			+ "FROM products pro\n"
+    			+ "LEFT JOIN inventories inv ON inv.product_id = pro.id\n"
     			+ "WHERE inv.fechahora <= TO_TIMESTAMP(?, 'YYYY-MM-DD HH24:MI:SS')\n"
     			+ (!Integer.valueOf(-1).equals(warehouseId) ? "AND warehouse_id = ?\n" : "")
     			+ "GROUP BY 1\n"
     			+ ") sub\n"
-    			+ "LEFT JOIN inventory inv ON (sub.product_id = inv.product_id AND sub.fechahora = inv.fechahora)\n"
-    			+ "LEFT JOIN product pro ON sub.product_id = pro.id\n"
-    			+ "LEFT JOIN code cod ON pro.id = cod.product_id\n"
-    			+ "LEFT JOIN warehouse war ON inv.warehouse_id = war.id\n"
+    			+ "LEFT JOIN inventories inv ON (sub.product_id = inv.product_id AND sub.fechahora = inv.fechahora)\n"
+    			+ "LEFT JOIN products pro ON sub.product_id = pro.id\n"
+    			+ "LEFT JOIN codes cod ON pro.id = cod.product_id\n"
+    			+ "LEFT JOIN warehouses war ON inv.warehouse_id = war.id\n"
     			+ "GROUP BY 1, 2, 3, 4, 5, 6\n"
     			+ "ORDER BY 2";
     	
@@ -295,10 +307,8 @@ public class InventoryService {
     	return queryForList;
 	}
     
-    public List<Map<String, Object>> getWarehouse() {
-    	String sql = "SELECT * FROM warehouse ORDER BY id";
-    	List<Map<String, Object>> queryForList = jdbcTemplate.queryForList(sql);
-    	return queryForList;
+    public List<Warehouse> getWarehouse() {
+    	return wr.findAll();
 	}
     
     public List<Map<String, Object>> getRegister() {

@@ -17,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import co.com.almacena.entities.Combo;
 import co.com.almacena.entities.InventoryMovement;
 import co.com.almacena.entities.Product;
+import co.com.almacena.entities.Warehouse;
 import co.com.almacena.services.InventoryService;
 
 @RestController
@@ -78,7 +79,7 @@ public class InventoryController {
     }
     
     @GetMapping(path = "api/getWarehouse")
-    public List<Map<String, Object>> getWarehouse() {
+    public List<Warehouse> getWarehouse() {
         return is.getWarehouse();
     }
     
