@@ -8,6 +8,9 @@ import { Movements } from './movements/movements';
 import { movementsResolver } from './movements/movements-resolver';
 import { ManualMovement } from './manual-movement/manual-movement';
 import { manualMovementResolver } from './manual-movement/manual-movement-resolver';
+import { Products } from './products/products';
+import { Combos } from './combos/combos';
+import { Logs } from './logs/logs';
 
 export const routes: Routes = [
     { path: '', component: Home },
@@ -16,4 +19,7 @@ export const routes: Routes = [
     { path: 'inventory', component: Inventory, resolve: { preload: inventoryResolver } },
     { path: 'movements', component: Movements, resolve: { preload: movementsResolver } },
     { path: 'manual-movement/:id', component: ManualMovement, resolve: { preload: manualMovementResolver }},
+    { path: 'products', component: Products },
+    { path: 'combos', component: Combos },
+    { path: 'logs', component: Logs },
 ];
