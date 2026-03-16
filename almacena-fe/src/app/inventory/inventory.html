@@ -1,0 +1,53 @@
+<main class="container">
+    <section class="grid">
+        <div class="card chart-large">
+            <div class="filter-section">
+                <label>Fecha: </label>
+                <input type="date" [(ngModel)]="filterDate" />
+                <label>Ubicacion: </label>
+                <select [(ngModel)]="selectedWarehouse">
+                    <option [ngValue]="-1">Todas</option>
+                    @for (w of warehouses; track w.id) {
+                        <option [ngValue]="w.id">{{ w.name }}</option>
+                    }
+                </select>
+                <button (click)="loadInventory()">Filtrar</button>
+                <button (click)="exportToExcel()">Exportar a Excel</button>
+            </div>
+
+            <table cellpadding="8" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>Último movimiento</th>
+                        <th>Códigos</th>
+                        <th>Producto</th>
+                        <th>Cantidad</th>
+                        <th>Precio</th>
+                        <th>Ubicación</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @for (p of table; track $index) {
+                    <tr>
+                        <td>{{ p.fechahora | date:'yyyy-MM-dd'}}</td>
+                        <td [innerHTML]="p.codes | semicolonBreak"></td>
+                        <td>{{ p.name }}</td>
+                        <td>{{ p.quantity }}</td>
+                        <td>{{ p.price | number: '1.0-2'}}</td>
+                        <td>{{ p.warehouse }}</td>
+                    </tr>
+                    }
+                    <tr class="total-row">
+                        <td></td>
+                        <td></td>
+                        <td>Total</td>
+                        <td>{{ totalQuantity }}</td>
+                        <td>{{ totalPrice | number: '1.0-2' }}</td>
+                        <td></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>

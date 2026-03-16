@@ -1,7 +1,20 @@
 @if(!auth.isLoginRoute()) {
    <header>
       <div class="logo"><span>Almacena</span></div>  
-      @if(!auth.isloggedIn()) {
+      @if(auth.isloggedIn()) {
+         <nav>
+            <a href="#">Dashboard</a>
+            <a [routerLink]="['/inventory']">Inventario</a>
+            <a href="#">Registrar movimiento</a>
+            <a href="#">Administrar productos</a>
+            <a href="#">Administrar combos</a>
+            <a href="#">Registros</a>
+         </nav>
+         <div class="actions">
+            <button class="btn-light">Imprimir</button>
+            <button class="btn-primary" (click)="auth.logout()">Cerrar Sesión</button>
+         </div>
+      } @else {
          <nav>
             <a href="#">Inicio</a>
             <a href="#">Funciones</a>
@@ -9,21 +22,8 @@
             <a href="#">Contacto</a>
          </nav>
          <div class="actions">
-            <button class="btn-light" (click)="auth.toLogin()">Login</button>
+            <button class="btn-light" (click)="auth.toLogin()">Iniciar sesión</button>
             <button class="btn-primary">Probar Gratis</button>
-         </div>
-      } @else {
-         <nav>
-            <a href="#">Dashboard</a>
-            <a href="#">Apps</a>
-            <a href="#">Pages</a>
-            <a href="#">Components</a>
-            <a href="#">Collections</a>
-         </nav>
-         <div class="actions">
-            <button class="btn-light">Email</button>
-            <button class="btn-light">Print</button>
-            <button class="btn-primary" (click)="auth.logout()">Logout</button>
          </div>
       }
    </header>

@@ -1,0 +1,138 @@
+/* layout general */
+
+.container{
+max-width:1400px;
+margin:auto;
+padding:30px;
+}
+
+.grid{
+display:grid;
+grid-template-columns:1fr;
+gap:20px;
+}
+
+
+/* card */
+
+.card{
+background:white;
+border-radius:10px;
+padding:25px;
+box-shadow:0 2px 10px rgba(0,0,0,0.08);
+}
+
+.chart-large{
+width:100%;
+}
+
+
+/* filtros */
+
+.filter-section{
+display:flex;
+flex-wrap:wrap;
+gap:10px;
+align-items:center;
+margin-bottom:20px;
+}
+
+.filter-section label{
+font-weight:600;
+font-size:14px;
+color:#444;
+}
+
+.filter-section input,
+.filter-section select{
+padding:6px 10px;
+border:1px solid #ddd;
+border-radius:6px;
+font-size:14px;
+}
+
+
+/* botones */
+
+.filter-section button{
+padding:7px 14px;
+border:none;
+border-radius:6px;
+cursor:pointer;
+font-size:14px;
+font-weight:600;
+transition:0.2s;
+}
+
+.filter-section button:first-of-type{
+background:#2c7be5;
+color:white;
+}
+
+.filter-section button:first-of-type:hover{
+background:#1a68d1;
+}
+
+.filter-section button:last-of-type{
+background:#28a745;
+color:white;
+}
+
+.filter-section button:last-of-type:hover{
+background:#218838;
+}
+
+
+/* tabla */
+
+table{
+width:100%;
+border-collapse:collapse;
+font-size:14px;
+}
+
+thead{
+background:#f5f7fa;
+}
+
+th{
+text-align:left;
+padding:10px;
+border-bottom:2px solid #e6e6e6;
+font-weight:600;
+color:#444;
+}
+
+td{
+padding:10px;
+border-bottom:1px solid #eee;
+vertical-align:top;
+}
+
+tbody tr:hover{
+background:#fafafa;
+}
+
+
+/* última fila (total) */
+
+tbody tr:last-child{
+font-weight:bold;
+background:#f8f9fc;
+}
+
+
+/* responsive */
+
+@media (max-width:900px){
+
+.filter-section{
+flex-direction:column;
+align-items:flex-start;
+}
+
+table{
+font-size:13px;
+}
+
+}
