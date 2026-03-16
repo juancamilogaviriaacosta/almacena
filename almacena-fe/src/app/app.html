@@ -1,7 +1,7 @@
 @if(!auth.isLoginRoute()) {
    <header>
       <div class="logo"><span>Almacena</span></div>  
-      @if(auth.isloggedIn()) {
+      @if(auth.isLoggedIn()) {
          <nav>
             <a [routerLink]="['/dashboard']" routerLinkActive="active">Dashboard</a>
             <a [routerLink]="['/inventory']" routerLinkActive="active">Inventario</a>

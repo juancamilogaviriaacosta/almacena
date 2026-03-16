@@ -14,7 +14,7 @@ export class Home implements OnInit {
   }
 
   ngOnInit(): void {
-    if(this.auth.isloggedIn()) {
+    if(this.auth.isLoggedIn()) {
       this.router.navigate(['/dashboard']);
     }
   }

@@ -1,26 +1,28 @@
 import { HttpClient } from "@angular/common/http";
 import { Injectable } from "@angular/core";
 import { Router } from "@angular/router";
+import { jwtDecode } from "jwt-decode";
 
 @Injectable({
   providedIn: 'root'
 })
 export class AuthService {
 
-  constructor(private router: Router, private http: HttpClient) {
-    
+  constructor(private router: Router, private http: HttpClient) {    
   }
 
   isAdmin(): boolean {
-    return localStorage.getItem('role') === 'Admin';
+    let token = localStorage.getItem('token');
+    return token ? jwtDecode<any>(token).role === 'Admin' : false;
   }
 
   isUser(): boolean {
-    return localStorage.getItem('role') === 'User';
+    let token = localStorage.getItem('token');
+    return token ? jwtDecode<any>(token).role === 'User' : false;
   }
 
-  isloggedIn(): boolean {
-    return this.isAdmin() || this.isUser();
+  isLoggedIn(): boolean {
+    return !!localStorage.getItem('token');
   }
 
   isLoginRoute(): boolean {
@@ -34,11 +36,8 @@ export class AuthService {
   login(form: any) {
     this.http.post('/api/auth', form).subscribe({
       next: (response:any) => {
-        if(response && response.id && response.role && response.tenant) {
-          localStorage.setItem('role', response.role);
-          localStorage.setItem('id', response.id);
-          localStorage.setItem('tenantId', response.tenant.id);
-          localStorage.setItem('tenantName', response.tenant.name);
+        if(response && response.token) {
+          localStorage.setItem('token', response.token);
           this.router.navigate(['/dashboard']);
         } else {
           alert('Error en usuario o contraseña');

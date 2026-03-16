@@ -15,17 +15,18 @@ import { ProductManagement } from './product-management/product-management';
 import { productManagementResolver } from './product-management/product-management-resolver';
 import { ComboManagement } from './combo-management/combo-management';
 import { comboManagementResolver } from './combo-management/combo-management-resolver';
+import { authGuard } from './guards/auth-guard';
 
 export const routes: Routes = [
     { path: '', component: Home },
     { path: 'login', component: Login },
-    { path: 'dashboard', component: Dashboard },
-    { path: 'inventory', component: Inventory, resolve: { preload: inventoryResolver } },
-    { path: 'movements', component: Movements, resolve: { preload: movementsResolver } },
-    { path: 'manual-movement/:id', component: ManualMovement, resolve: { preload: manualMovementResolver }},
-    { path: 'products', component: Products },
-    { path: 'combos', component: Combos },
-    { path: 'logs', component: Logs },
-    { path: 'product-management/:id', component: ProductManagement, resolve: { preload: productManagementResolver }},
-    { path: 'combo-management/:id', component: ComboManagement, resolve: { preload: comboManagementResolver }},
+    { path: 'dashboard', component: Dashboard, canActivate: [authGuard] },
+    { path: 'inventory', component: Inventory, canActivate: [authGuard], resolve: { preload: inventoryResolver } },
+    { path: 'movements', component: Movements, canActivate: [authGuard], resolve: { preload: movementsResolver } },
+    { path: 'manual-movement/:id', component: ManualMovement, canActivate: [authGuard], resolve: { preload: manualMovementResolver } },
+    { path: 'products', component: Products, canActivate: [authGuard] },
+    { path: 'combos', component: Combos, canActivate: [authGuard] },
+    { path: 'logs', component: Logs, canActivate: [authGuard] },
+    { path: 'product-management/:id', component: ProductManagement, canActivate: [authGuard], resolve: { preload: productManagementResolver } },
+    { path: 'combo-management/:id', component: ComboManagement, canActivate: [authGuard], resolve: { preload: comboManagementResolver } },
 ];

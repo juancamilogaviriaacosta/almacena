@@ -1,5 +1,6 @@
 package co.com.almacena.services;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -17,6 +18,9 @@ public class UserService {
 	
 	@Autowired
 	private UserRepository repo;
+	
+	@Autowired
+    private JwtService jwtService;
 
 	public List<User> findAll() {
 		return repo.findAll();
@@ -36,10 +40,14 @@ public class UserService {
 		return ResponseEntity.ok(Map.of("message","deleted"));
 	}
 
-	public User auth(Map<String, String> map) {
+	public Map<String,Object> auth(Map<String, String> map) {
 		Optional<User> byUsername = repo.findByUsername(map.get("username"));
 		if(byUsername.isPresent() && byUsername.get().getPassword().equals(map.get("password"))) {
-			return byUsername.get();
+			User u = byUsername.get();
+			String token = jwtService.generateToken(u.getUsername(), u.getId(), u.getRole().name(), u.getTenant().getId(), u.getTenant().getName());
+			Map<String,Object> response = new HashMap<>();
+            response.put("token", token);
+			return response;
 		}
 		return null;
 	}
