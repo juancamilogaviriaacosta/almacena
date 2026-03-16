@@ -38,8 +38,7 @@ export class Inventory {
       warehouseId: this.selectedWarehouse
     };
 
-    let tmp = this.http.get<any[]>('/api/getInventory', { params, responseType: 'json'});
-    tmp.subscribe(table => {
+    this.http.get<any[]>('/api/getInventory', { params }).subscribe(table => {
       this.table = table;
       this.calculateTotal();
       this.cd.detectChanges();

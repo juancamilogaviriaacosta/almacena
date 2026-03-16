@@ -1,0 +1,41 @@
+<main class="container">
+    <section class="grid">
+        <div class="card chart-max">
+            <table cellpadding="8" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>Código</th>
+                        <th>Nombre</th>
+                        <th>Opciones</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    @for (p of table; track $index) {
+                    <tr>
+                        <td>{{ p.id }}</td>
+                        <td>{{ p.name }}</td>
+                        <td class="div-left">
+                            <button id="ml" (click)="onMLClick('ml', p.id)">Subir archivo ML</button>
+                            &nbsp;
+                            <input type="file" #mlInput style="display:none" (change)="onMLFileSelected($event)">
+                            <button id="dr" (click)="onMLClick('dr', p.id)">Subir archivo Dropi</button>
+                            &nbsp;
+                            <button id="manual" (click)="manual(p.id)">Manual</button>
+                        </td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </section>
+</main>
+
+@if (uploading) {
+    <div class="modal">
+    <div class="modal-content">
+        <img src="uploading.gif" alt="Subiendo..." style="height:48px;display:block;margin:auto;">
+        <p>Subiendo archivo, por favor espera...</p>
+    </div>
+    </div>
+}

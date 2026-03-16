@@ -1,11 +1,11 @@
 <main class="container">
     <section class="grid">
-        <div class="card chart-large">
-            <div class="filter-section">
+        <div class="card chart-max">
+            <form class="filter-section">
                 <label>Fecha: </label>
-                <input type="date" [(ngModel)]="filterDate" />
+                <input type="date" [(ngModel)]="filterDate" name="filterDate"/>
                 <label>Ubicacion: </label>
-                <select [(ngModel)]="selectedWarehouse">
+                <select [(ngModel)]="selectedWarehouse" name="warehouse">
                     <option [ngValue]="-1">Todas</option>
                     @for (w of warehouses; track w.id) {
                         <option [ngValue]="w.id">{{ w.name }}</option>
@@ -13,8 +13,8 @@
                 </select>
                 <button (click)="loadInventory()">Filtrar</button>
                 <button (click)="exportToExcel()">Exportar a Excel</button>
-            </div>
-
+            </form>
+            
             <table cellpadding="8" cellspacing="0">
                 <thead>
                     <tr>
