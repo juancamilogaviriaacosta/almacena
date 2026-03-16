@@ -1,0 +1,77 @@
+<main class="container">
+    <section class="grid">
+        <div class="card chart-max">
+            @if (combo) {
+            <form class="form-layout" (ngSubmit)="save()" (keydown.enter)="$event.preventDefault()">
+                @for (tmp of combo.code; let i = $index; track $index) {
+                <div class="autocomplete-row">
+                    @if (i===0) {
+                    <label>Códigos:</label>
+                    } @else {
+                    <label>&nbsp;</label>
+                    }
+                    <input type="text" name="code{{i}}" [(ngModel)]="tmp.code" />
+                    @if (i===0) {
+                    <button type="button" class="circle-btn" (click)="addCode()">+</button>
+                    }
+                </div>
+                }
+                <div>
+                    <label for="nombre">Nombre:</label>
+                    <input type="text" id="nombre" name="nombre" [(ngModel)]="combo.name" />
+                </div>
+                <div class="autocomplete-row">
+                    <label>Buscar producto:</label>
+                    <input type="text" list="productsList" [(ngModel)]="selectedProduct" name="selectedProduct"
+                        (input)="onProductInput()" (keydown.enter)="addProductFromAutocomplete()"
+                        placeholder="Escribe para buscar..." name="no-autocomplete" autocomplete="off" readonly
+                        (focus)="$event.target.removeAttribute('readonly')" />
+                    <datalist id="productsList">
+                        @for (p of filteredProducts; track p) {
+                        <option [value]="p.name"></option>
+                        }
+                    </datalist>
+                    <button type="button" class="circle-btn" (click)="addProductFromAutocomplete()">+</button>
+                </div>
+                @for (tmp2 of combo.productDetail; let i = $index; track tmp2) {
+                <div class="form-row">
+                    @if (i===0) {
+                    <label>Productos:</label>
+                    } @else {
+                    <label>&nbsp;</label>
+                    }
+                    <input type="text" name="productDetail{{i}}" [(ngModel)]="tmp2.product.name" readonly />
+                    <input type="number" name="quantity{{i}}" [(ngModel)]="tmp2.quantity" min="1" step="1"
+                        onkeydown="return event.key !== '-' && event.key !== '+' && event.key !== 'e'"
+                        style="max-width: 60px;" />
+                    <button type="button" class="circle-btn-red" (click)="removeProductFromAutocomplete(i)">x</button>
+                </div>
+                }
+                <div>
+                    <button class="btn btn-primary">Guardar</button>
+                    <button class="btn btn-light" (click)="cancel()">Cancelar</button>
+                </div>
+            </form>
+            }
+        </div>
+    </section>
+</main>
+
+@if (uploading) {
+<div class="modal">
+    <div class="modal-content">
+        <img src="uploading.gif" alt="Subiendo..." style="height:48px;display:block;margin:auto;">
+    </div>
+</div>
+}
+
+@if (mensajeError !== '') {
+<div class="modal">
+    <div class="modal-content">
+        <h3>Error</h3>
+        <p [innerHTML]="mensajeError"></p>
+        <br />
+        <button type="button" class="cancelar" (click)="closeError()">Cerrar</button>
+    </div>
+</div>
+}

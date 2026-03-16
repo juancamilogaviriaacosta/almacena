@@ -13,6 +13,8 @@ import { Combos } from './combos/combos';
 import { Logs } from './logs/logs';
 import { ProductManagement } from './product-management/product-management';
 import { productManagementResolver } from './product-management/product-management-resolver';
+import { ComboManagement } from './combo-management/combo-management';
+import { comboManagementResolver } from './combo-management/combo-management-resolver';
 
 export const routes: Routes = [
     { path: '', component: Home },
@@ -25,4 +27,5 @@ export const routes: Routes = [
     { path: 'combos', component: Combos },
     { path: 'logs', component: Logs },
     { path: 'product-management/:id', component: ProductManagement, resolve: { preload: productManagementResolver }},
+    { path: 'combo-management/:id', component: ComboManagement, resolve: { preload: comboManagementResolver }},
 ];

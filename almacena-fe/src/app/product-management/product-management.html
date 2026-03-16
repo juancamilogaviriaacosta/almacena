@@ -2,7 +2,7 @@
     <section class="grid">
         <div class="card chart-max">
             @if (product) {
-            <form (ngSubmit)="save()" (keydown.enter)="$event.preventDefault()">
+            <form class="form-layout" (ngSubmit)="save()" (keydown.enter)="$event.preventDefault()">
                 @for (tmp of product.code; let i = $index; track $index) {
                 <div class="autocomplete-row">
                     @if (i===0) {
@@ -29,8 +29,8 @@
                     <input type="text" id="categoria" name="categoria" [(ngModel)]="product.category" />
                 </div>
                 <div>
-                    <button class="btn-primary">Guardar</button>
-                    <button class="btn-light" (click)="cancel()">Cancelar</button>
+                    <button class="btn btn-primary">Guardar</button>
+                    <button class="btn btn-light" (click)="cancel()">Cancelar</button>
                 </div>
             </form>
             }

@@ -11,6 +11,7 @@ import { Router } from '@angular/router';
   styleUrl: './products.css',
 })
 export class Products {
+  
   table: any = [];
 
   constructor(private http: HttpClient, private router: Router) {}

@@ -7,7 +7,7 @@
             <a [routerLink]="['/inventory']" routerLinkActive="active">Inventario</a>
             <a [routerLink]="['/movements']" [class.active]="isMovementSection()">Registrar movimiento</a>
             <a [routerLink]="['/products']" [class.active]="isProductsSection()">Administrar productos</a>
-            <a [routerLink]="['/combos']" routerLinkActive="active">Administrar combos</a>
+            <a [routerLink]="['/combos']" [class.active]="isCombosSection()">Administrar combos</a>
             <a [routerLink]="['/logs']" routerLinkActive="active">Registros</a>
          </nav>
          <div class="actions">
