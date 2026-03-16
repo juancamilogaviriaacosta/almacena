@@ -11,6 +11,8 @@ import { manualMovementResolver } from './manual-movement/manual-movement-resolv
 import { Products } from './products/products';
 import { Combos } from './combos/combos';
 import { Logs } from './logs/logs';
+import { ProductManagement } from './product-management/product-management';
+import { productManagementResolver } from './product-management/product-management-resolver';
 
 export const routes: Routes = [
     { path: '', component: Home },
@@ -22,4 +24,5 @@ export const routes: Routes = [
     { path: 'products', component: Products },
     { path: 'combos', component: Combos },
     { path: 'logs', component: Logs },
+    { path: 'product-management/:id', component: ProductManagement, resolve: { preload: productManagementResolver }},
 ];

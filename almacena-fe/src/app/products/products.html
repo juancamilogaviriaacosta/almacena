@@ -1,7 +1,33 @@
 <main class="container">
     <section class="grid">
         <div class="card chart-max">
-            
+            <div class="div-new">
+                <button class="btn-primary" (click)="editProduct('new')">Nuevo</button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Códigos</th>
+                        <th>Nombre</th>
+                        <th>Precio</th>
+                        <th>Categoría</th>
+                        <th>Opciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (p of (table | async); track $index) {
+                    <tr>
+                        <td [innerHTML]="p.codes | semicolonBreak"></td>
+                        <td>{{ p.name }}</td>
+                        <td>{{ p.price | number: '1.0-2'}}</td>
+                        <td>{{ p.category }}</td>
+                        <td class="div-left">
+                            <button id="ml" (click)="editProduct(p.id)">Editar</button>
+                        </td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
         </div>
     </section>
 </main>

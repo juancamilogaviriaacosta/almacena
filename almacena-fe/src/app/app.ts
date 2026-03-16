@@ -13,4 +13,14 @@ export class App {
 
   constructor(public auth: AuthService, public router: Router) {
   }
+
+  isProductsSection() {
+    return this.router.url.startsWith('/products') ||
+      this.router.url.startsWith('/product-management');
+  }
+
+  isMovementSection() {
+    return this.router.url.startsWith('/movements') ||
+      this.router.url.startsWith('/manual-movement');
+  }
 }
