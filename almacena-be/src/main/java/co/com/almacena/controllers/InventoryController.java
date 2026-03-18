@@ -6,6 +6,7 @@ import java.util.Map;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import co.com.almacena.entities.Combo;
 import co.com.almacena.entities.InventoryMovement;
+import co.com.almacena.entities.Log;
 import co.com.almacena.entities.Product;
 import co.com.almacena.entities.Warehouse;
 import co.com.almacena.services.InventoryService;
@@ -33,70 +35,71 @@ public class InventoryController {
     }
     
     @PostMapping(path = "api/updateProduct", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> updateProduct(@RequestBody Product product) {
-    	String response = is.updateProduct(product);
+    public ResponseEntity<String> updateProduct(Authentication authentication, @RequestBody Product product) {
+    	String response = is.updateProduct(authentication, product);
     	return ResponseEntity.ok(response);
     }
     
     @PostMapping(path = "api/updateCombo", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> updateCombo(@RequestBody Combo combo) {
-    	String response = is.updateCombo(combo);
+    public ResponseEntity<String> updateCombo(Authentication authentication, @RequestBody Combo combo) {
+    	String response = is.updateCombo(authentication, combo);
     	return ResponseEntity.ok(response);
     }
     
     @PostMapping(path = "api/manualMovement/{warehouseId}", produces = MediaType.APPLICATION_JSON_VALUE)
-    public ResponseEntity<String> manualMovement(@PathVariable("warehouseId") Integer warehouseId,
+    public ResponseEntity<String> manualMovement(Authentication authentication, @PathVariable("warehouseId") Long warehouseId,
     		@RequestBody List<Map<String, Object>> manualMovement) {
-    	is.manualMovement(warehouseId, manualMovement);
+    	is.manualMovement(authentication, warehouseId, manualMovement);
     	return ResponseEntity.ok("Ok");
     }
     
     @GetMapping(path = "api/getProduct")
-    public Map<String, Object> getProduct(@RequestParam("id") Integer id) {
-        return is.getProduct(id);
+    public Map<String, Object> getProduct(Authentication authentication, @RequestParam("id") Long id) {
+        return is.getProduct(authentication, id);
     }
     
     @GetMapping(path = "api/getProducts")
-    public List<Map<String, Object>> getProducts() {
-        return is.getProducts();
+    public List<Map<String, Object>> getProducts(Authentication authentication) {
+        return is.getProducts(authentication);
     }
     
     @GetMapping(path = "api/getCombos")
-    public List<Map<String, Object>> getCombos() {
-        return is.getCombos();
+    public List<Map<String, Object>> getCombos(Authentication authentication) {
+        return is.getCombos(authentication);
     }
     
     @GetMapping(path = "api/getCombo")
-    public Map<String, Object> getCombo(@RequestParam("id") Integer id) {
-        return is.getCombo(id);
+    public Map<String, Object> getCombo(Authentication authentication, @RequestParam("id") Long id) {
+        return is.getCombo(authentication, id);
     }
     
     @GetMapping(path = "api/getInventory")
     public List<Map<String, Object>> getInventory(
+    		Authentication authentication,
     		@RequestParam("filterDate") String filterDate,
-            @RequestParam("warehouseId") Integer warehouseId) {
-        return is.getInventory(filterDate, warehouseId);
+            @RequestParam("warehouseId") Long warehouseId) {
+        return is.getInventory(authentication, filterDate, warehouseId);
     }
     
     @GetMapping(path = "api/getWarehouse")
-    public List<Warehouse> getWarehouse() {
-        return is.getWarehouse();
+    public List<Warehouse> getWarehouse(Authentication authentication) {
+        return is.getWarehouse(authentication);
     }
     
-    @GetMapping(path = "api/getRegister")
-    public List<Map<String, Object>> getRegister() {
-        return is.getRegister();
+    @GetMapping(path = "api/getLogs")
+    public List<Log> getRegister(Authentication authentication) {
+        return is.getLogs(authentication);
     }
     
     @GetMapping(path = "api/getInventoryMovement")
-    public List<InventoryMovement> getInventoryMovement() {
-        return is.getInventoryMovement();
+    public List<InventoryMovement> getInventoryMovement(Authentication authentication) {
+        return is.getInventoryMovement(authentication);
     }
     
     @PostMapping(path = "api/uploadFile")
-    public Map<String, Integer> uploadFile(@RequestParam("fileId") String fileId,
-    		@RequestParam("warehouseId") Integer warehouseId, @RequestParam("file") MultipartFile mpf) {
-    	return is.uploadFile(fileId, warehouseId, mpf);
+    public Map<String, Integer> uploadFile(Authentication authentication, @RequestParam("fileId") String fileId,
+    		@RequestParam("warehouseId") Long warehouseId, @RequestParam("file") MultipartFile mpf) {
+    	return is.uploadFile(authentication, fileId, warehouseId, mpf);
     }
 
 }

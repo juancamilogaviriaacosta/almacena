@@ -9,6 +9,7 @@ import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.OneToMany;
 import jakarta.persistence.Table;
@@ -22,7 +23,8 @@ public class Combo {
 	@Column
 	private Long id;
 	
-	@ManyToOne
+	@ManyToOne(optional = false)
+	@JoinColumn(name = "tenant_id", nullable = false)
     private Tenant tenant;
 	
 	@Column

@@ -42,7 +42,7 @@ export class Movements  implements OnInit {
           next: (response) => {
             this.uploading = false;
             (event.target as HTMLInputElement).value = '';
-            this.router.navigate(['/home']);
+            this.router.navigate(['/inventory']);
           },
           error: (error) => {
             this.uploading = false;

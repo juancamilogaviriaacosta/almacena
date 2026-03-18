@@ -9,8 +9,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import co.com.almacena.services.UserService;
 
-
-
 @RestController
 public class LoginController {
 	
@@ -21,5 +19,4 @@ public class LoginController {
     public Map<String,Object> auth(@RequestBody Map<String, String> map) {
 		return us.auth(map);
 	}
-
 }

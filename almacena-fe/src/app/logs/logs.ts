@@ -15,7 +15,7 @@ export class Logs implements OnInit {
   constructor(private http: HttpClient) {}
 
   ngOnInit(): void {
-    this.table = this.http.get('/api/getRegister');
+    this.table = this.http.get('/api/getLogs');
   }
 
 }
