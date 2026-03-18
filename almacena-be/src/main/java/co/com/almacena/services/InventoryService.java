@@ -1,5 +1,6 @@
 package co.com.almacena.services;
 
+import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.time.Instant;
 import java.time.OffsetDateTime;
@@ -20,11 +21,11 @@ import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
-import org.springframework.jdbc.core.ColumnMapRowMapper;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -32,6 +33,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import co.com.almacena.entities.Code;
 import co.com.almacena.entities.Combo;
+import co.com.almacena.entities.Inventory;
 import co.com.almacena.entities.InventoryMovement;
 import co.com.almacena.entities.Log;
 import co.com.almacena.entities.MovementType;
@@ -42,6 +44,10 @@ import co.com.almacena.entities.Status;
 import co.com.almacena.entities.Tenant;
 import co.com.almacena.entities.User;
 import co.com.almacena.entities.Warehouse;
+import co.com.almacena.repositories.CodeRepository;
+import co.com.almacena.repositories.ComboRepository;
+import co.com.almacena.repositories.InventoryMovementRepository;
+import co.com.almacena.repositories.InventoryRepository;
 import co.com.almacena.repositories.LogRepository;
 import co.com.almacena.repositories.ProductRepository;
 import co.com.almacena.repositories.TenantRepository;
@@ -53,6 +59,7 @@ import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
 
 @Service
+@SuppressWarnings("unchecked")
 public class InventoryService {
 	
 	@Autowired
@@ -62,7 +69,22 @@ public class InventoryService {
     private EntityManager em;
 	
 	@Autowired
-	private WarehouseRepository wr;
+	private CodeRepository codr;
+	
+	@Autowired
+	private ComboRepository comr;
+	
+	@Autowired
+	private InventoryRepository ir;
+	
+	@Autowired
+	private InventoryMovementRepository imr;
+	
+	@Autowired
+	private LogRepository lr;
+	
+	@Autowired
+	private ProductRepository pr;
 	
 	@Autowired
 	private TenantRepository tr;
@@ -71,11 +93,8 @@ public class InventoryService {
 	private UserRepository ur;
 	
 	@Autowired
-	private LogRepository lr;
-	
-	@Autowired
-	private ProductRepository pr;
-    
+	private WarehouseRepository wr;
+	    
     public void initDatabase() {
     	String enc = new BCryptPasswordEncoder().encode("123456");
     	Tenant t1 = tr.save(new Tenant(null, "CJ Importaciones CO", "Basic"));
@@ -269,7 +288,7 @@ public class InventoryService {
     			+ "FROM combos com\n"
     			+ "LEFT JOIN codes cod ON com.id = cod.combo_id\n"
     			+ "LEFT JOIN combos_product_detail cpd ON com.id = cpd.combo_id\n"
-    			+ "LEFT JOIN products_detail prd ON cpd.product_detail_id = prd.id\n"
+    			+ "LEFT JOIN product_details prd ON cpd.product_detail_id = prd.id\n"
     			+ "LEFT JOIN products pro ON prd.product_id = pro.id\n"
     			+ "WHERE com.id = ?\n"
     			+ "GROUP BY 1, 2, 3\n"
@@ -362,17 +381,20 @@ public class InventoryService {
 		}
     	return null;
     }
-    
+
+    @Transactional
 	public Map<String, Integer> uploadFile(Authentication authentication, String fileId, Long warehouseId, MultipartFile mpf) {
 		Map<String, Integer> response = new HashMap<>();
 		response.put("success", 0);
 		response.put("errors", 0);
-		Long tenantId = ((UserDto) authentication.getPrincipal()).getTenantId();
+		Tenant tenant = new Tenant(((UserDto) authentication.getPrincipal()).getTenantId(), null, null);
+		Warehouse warehouse = new Warehouse(warehouseId, null, null);
+		User user = new User(((UserDto) authentication.getPrincipal()).getId(), null, null, null, null, null, null); 
     	List<Product> allProducts = pr.findAll(Sort.by("id"));    	
 
 		try (Workbook workbook = WorkbookFactory.create(mpf.getInputStream())) {
 			Map<String, Object[]> map = new HashMap<>();
-			OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
+			Instant now = Instant.now();
 			Sheet sheet = workbook.getSheetAt(0);
 			Iterator<Row> rowIterator = sheet.iterator();
 			DecimalFormat df = new DecimalFormat("#");
@@ -412,24 +434,17 @@ public class InventoryService {
 				} catch (Exception e) {
 					//e.printStackTrace();
 				}
-		    }	    
+		    }
 		    
-		    String placeholders = String.join(",", Collections.nCopies(map.keySet().size(), "?"));
-		    String sqlNewProduct = "INSERT INTO products(name, status, price, tenant_id) VALUES (?, ?, ?, ?) RETURNING id";
-		    String sqlNewCode = "INSERT INTO codes(code, status, product_id, tenant_id) VALUES (?, ?, ?, ?)";
-		    String sqlNewCombo = "INSERT INTO combos(name, status, tenant_id) VALUES (?, ?, ?) RETURNING id";
-		    String sqlNewComboCode = "INSERT INTO codes(code, status, combo_id, tenant_id) VALUES (?, ?, ?, ?)";
-		    String sqlNewInventory = "INSERT INTO inventories(quantity, product_id, warehouse_id, fechahora, tenant_id) VALUES (?, ?, ?, ?, ?)";
-		    		    
 		    String sqlProducts = "SELECT STRING_AGG(code, ';') AS codes FROM codes WHERE tenant_id = :tenantId AND code IN(:codes)";
 		    Query nq = em.createNativeQuery(sqlProducts);
-		    nq.setParameter("tenantId", tenantId);
+		    nq.setParameter("tenantId", tenant.getId());
 		    nq.setParameter("codes", map.keySet());
 		    String products = (String) nq.getSingleResult();
 		    
 		    Set<String> comboCodes = new HashSet<>();
 		    for (String excelCode : map.keySet()) {
-		    	boolean isInDb = products.contains(excelCode);		    	
+		    	boolean isInDb = products == null ? false : products.contains(excelCode);		    	
 		    	String name = (String) map.get(excelCode)[1];
 		    	Integer price = (Integer) map.get(excelCode)[2];
 		    	boolean isCombo = name.trim().endsWith("$");
@@ -438,33 +453,40 @@ public class InventoryService {
 		    	}
 		    	if (!isInDb) {
 		    	    if (isCombo) {
-		    	    	List<Map<String, Object>> newCombo = jdbcTemplate.queryForList(sqlNewCombo, name, Status.Incompleto.name(), tenantId);
-			    		jdbcTemplate.update(sqlNewComboCode, excelCode, Status.Activo.name(), newCombo.get(0).get("id"), tenantId);
+						Combo combo = new Combo(null, tenant, name, Status.Incompleto, null, null);
+						Code code = new Code(null, tenant, excelCode, null, combo);
+		    	    	comr.save(combo);
+		    	    	codr.save(code);
 		    	    } else {
-		    	    	List<Map<String, Object>> newProduct = jdbcTemplate.queryForList(sqlNewProduct, name, Status.Incompleto.name(), price, tenantId);
-			    		jdbcTemplate.update(sqlNewCode, excelCode, Status.Activo.name(), newProduct.get(0).get("id"), tenantId);
-						jdbcTemplate.update(sqlNewInventory, 0, newProduct.get(0).get("id"), warehouseId, now, tenantId);
-						map.get(excelCode)[3] = newProduct.get(0).get("id");
+		    	    	Product product = new Product(null, tenant, null, null, name, null, new BigDecimal(price), Status.Incompleto);
+		    	    	Code code = new Code(null, tenant, excelCode, product, null);
+		    	    	Inventory inventory = new Inventory(null, tenant, warehouse, product, 0, now);
+		    	    	pr.save(product);
+		    	    	codr.save(code);
+		    	    	ir.save(inventory);
+		    	    	map.get(excelCode)[3] = product.getId();
 		    	    }
 		    	}
 			}
 		    
 		    if(!comboCodes.isEmpty()) {
-			    String comboPlaceholders = String.join(",", Collections.nCopies(comboCodes.size(), "?"));
 			    String sqlComboToProducts = "SELECT DISTINCT ccd.code AS cmb_code, pro.id AS pro_id, prd.quantity\n"
 			    		+ "FROM combos cmb\n"
 			    		+ "INNER JOIN codes ccd ON ccd.combo_id = cmb.id\n"
 			    		+ "INNER JOIN combos_product_detail cpd ON cmb.id = cpd.combo_id\n"
 			    		+ "INNER JOIN product_details prd ON cpd.product_detail_id = prd.id\n"
 			    		+ "INNER JOIN products pro ON prd.product_id = pro.id\n"
-			    		+ "WHERE 1 = 1\n"
-			    		+ "AND ccd.code IN (" + comboPlaceholders + ")\n";
-			    List<Map<String, Object>> comboToProducts = jdbcTemplate.queryForList(sqlComboToProducts, comboCodes.toArray());
-			    for (int i = 0; i < comboToProducts.size(); i++) {
-			    	Map<String, Object> tmp = comboToProducts.get(i);
-					String cmbCode = (String) tmp.get("cmb_code");
-					Long proId = (Long) tmp.get("pro_id");
-					Integer productQuantity = (Integer) tmp.get("quantity");
+			    		+ "WHERE cmb.tenant_id = :tenantId\n"
+			    		+ "AND ccd.code IN (:comboCodes)\n";
+			    Query nqCombos = em.createNativeQuery(sqlComboToProducts);
+			    nqCombos.setParameter("tenantId", tenant.getId());
+			    nqCombos.setParameter("comboCodes", comboCodes);
+				List<Object[]> comboToProducts = nqCombos.getResultList();
+				for (int i = 0; i < comboToProducts.size(); i++) {
+			    	Object[] tmp = comboToProducts.get(i);
+					String cmbCode = (String) tmp[0];
+					Long proId = (Long) tmp[1];
+					Integer productQuantity = (Integer) tmp[2];
 					Integer cmbQuantity = (Integer) map.get(cmbCode)[0];
 					map.put("combo " + i, new Object[] {cmbQuantity * productQuantity, "name", "price", proId});
 				}
@@ -473,31 +495,32 @@ public class InventoryService {
 				}
 		    }
 		    
-		    placeholders = String.join(",", Collections.nCopies(map.keySet().size(), "?"));
 		    String sqlValidation = "SELECT pro.id, inv.quantity\n"
 		    		+ "FROM products pro\n"
 		    		+ "LEFT JOIN codes cod ON pro.id = cod.product_id\n"
-		    		+ "LEFT JOIN inventories inv ON (inv.product_id = pro.id AND inv.warehouse_id = ?)\n"
-		    		+ "WHERE inv.quantity IS NULL\n"
-		    		+ "AND pro.id IN (" + placeholders + ")";		    
-		    String SqlInvMovement = "INSERT INTO inventory_movements(fechahora, movement_type, notes, quantity, warehouse_id, usuario_id, product_id)\n"
-		    		+ "VALUES (?, ?, ?, ?, ?, ?, ?)";
+		    		+ "LEFT JOIN inventories inv ON (inv.product_id = pro.id AND inv.warehouse_id = :warehouseId)\n"
+		    		+ "WHERE pro.tenant_id = :tenantId\n"
+		    		+ "AND inv.quantity IS NULL\n"
+		    		+ "AND pro.id IN (:productIds)";		    
+
 		    String sqlSubtraction = "UPDATE inventories inv\n"
-		    		+ "SET quantity = inv.quantity - ?\n"
+		    		+ "SET quantity = inv.quantity - :quantity\n"
 		    		+ "FROM products pro\n"
 		    		+ "WHERE inv.product_id = pro.id\n"
-		    		+ "AND pro.id = ?\n"
-		    		+ "AND inv.warehouse_id = ?";
-		    String sqlLog = "INSERT INTO logs(fechahora, information) VALUES (?, ?)";
-		    		    
-		    List<Long> params = new ArrayList<>(map.size() + 1);
-		    params.add((Long) warehouseId);
-		    for (Object[] val : map.values()) {
-		    	params.add((Long) val[3]);
-		    }
-		    List<Map<String, Object>> inventory = jdbcTemplate.query(sqlValidation, new ColumnMapRowMapper(), params.toArray());
-		    for (Map<String, Object> tmp : inventory) {
-				jdbcTemplate.update(sqlNewInventory, 0, tmp.get("id"), warehouseId, now);
+		    		+ "AND pro.tenant_id = :tenantId\n"
+		    		+ "AND pro.id = :productId\n"
+		    		+ "AND inv.warehouse_id = :warehouseId";
+		    	    
+		    List<Long> productIds = map.values().stream().map(val -> ((Number) val[3]).longValue()).toList();
+		    Query nqValidation = em.createNativeQuery(sqlValidation);
+		    nqValidation.setParameter("warehouseId", warehouse.getId());
+		    nqValidation.setParameter("tenantId", tenant.getId());
+		    nqValidation.setParameter("productIds", productIds);
+		    List<Object[]> resultList = nqValidation.getResultList();
+		    for (Object[] tmp : resultList) {
+		    	Product product = new Product((Long) tmp[0], null, null, null, null, null, null, null);
+		    	Inventory inventory = new Inventory(null, tenant, warehouse, product, 0, now);
+		    	ir.save(inventory);
 			}		    
 		    
 		    for (Map.Entry<String, Object[]> entry : map.entrySet()) {
@@ -506,11 +529,19 @@ public class InventoryService {
 		    	Long productId = (Long) entry.getValue()[3];
 		    	if(!comboCodes.contains(excelCode)) { 
 			    	try {
-			    		jdbcTemplate.update(SqlInvMovement, now, MovementType.Venta.name(), mpf.getOriginalFilename(), excelQuantity, warehouseId, 1, productId);
-			    		jdbcTemplate.update(sqlSubtraction, excelQuantity, productId, warehouseId);
+			    		Product product = new Product(productId, null, null, null, null, null, null, null);
+			    		InventoryMovement im = new InventoryMovement(null, tenant, product, warehouse, excelQuantity, MovementType.Venta, now, mpf.getOriginalFilename(), user);
+			    		imr.save(im);
+			    		Query nqSubtraction = em.createNativeQuery(sqlSubtraction);
+			    		nqSubtraction.setParameter("quantity", excelQuantity);
+			    		nqSubtraction.setParameter("tenantId",tenant.getId());
+			    		nqSubtraction.setParameter("productId", productId);
+			    		nqSubtraction.setParameter("warehouseId", warehouse.getId());
+			    		nqSubtraction.executeUpdate();
 			    		response.put("success", response.get("success") + 1);
-					} catch (Exception e) {
-						jdbcTemplate.update(sqlLog, now, e.getMessage());
+					} catch (Exception e) {e.printStackTrace();
+						Log log = new Log(null, tenant, now, e.getMessage());
+						lr.save(log);
 						response.put("errors", response.get("errors") + 1);
 					}
 		    	}
