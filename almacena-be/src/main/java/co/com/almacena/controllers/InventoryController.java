@@ -34,6 +34,12 @@ public class InventoryController {
         return ResponseEntity.ok("Ok");
     }
     
+    @GetMapping(path = "api/runEtl")
+    public ResponseEntity<String> runEtl() {
+        is.runEtl();
+        return ResponseEntity.ok("Ok");
+    }
+    
     @PostMapping(path = "api/updateProduct", produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<String> updateProduct(Authentication authentication, @RequestBody Product product) {
     	String response = is.updateProduct(authentication, product);

@@ -19,6 +19,10 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
+import org.jsoup.Jsoup;
+import org.jsoup.nodes.Document;
+import org.jsoup.nodes.Element;
+import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -44,8 +48,12 @@ import co.com.almacena.entities.Status;
 import co.com.almacena.entities.Tenant;
 import co.com.almacena.entities.User;
 import co.com.almacena.entities.Warehouse;
+import co.com.almacena.entities.datawarehouse.DimProduct;
+import co.com.almacena.entities.datawarehouse.DimRank;
 import co.com.almacena.repositories.CodeRepository;
 import co.com.almacena.repositories.ComboRepository;
+import co.com.almacena.repositories.DimProductRepository;
+import co.com.almacena.repositories.DimRankRepository;
 import co.com.almacena.repositories.InventoryMovementRepository;
 import co.com.almacena.repositories.InventoryRepository;
 import co.com.almacena.repositories.LogRepository;
@@ -94,6 +102,12 @@ public class InventoryService {
 	
 	@Autowired
 	private WarehouseRepository wr;
+	
+	@Autowired
+	private DimProductRepository dpr;
+	
+	@Autowired
+	private DimRankRepository drr;
 	    
     public void initDatabase() {
     	String enc = new BCryptPasswordEncoder().encode("123456");
@@ -104,6 +118,95 @@ public class InventoryService {
     	ur.save(new User(null, t1, "cjimportacionesco", "Juan David", "cjimportacionesco@gmail.com", Role.Admin, enc));
     	ur.save(new User(null, t1, "usuario1cj1co", "Usuario 1", "usuario1cj1co@gmail.com", Role.User, enc));
     }
+    
+    public void runEtl() {
+        try {
+        	Instant now = Instant.now();
+        	String baseUrl = "";
+            String url = baseUrl + "/gp/movers-and-shakers";
+            Document doc = Jsoup.connect(url)
+                    .userAgent("Mozilla/5.0")
+                    .timeout(10000)
+                    .get();
+            
+            Elements products = doc.select("div.a-carousel-row-inner").select("li[aria-roledescription=slide]");
+            for (Element product : products) {
+            	try {
+            		Elements salesMovement = product.select("span[class*=carousel-sales-movement]");
+                	Elements img = product.select("img[alt=\"\"]");
+                	String title = product.select("div[class*=truncate-desktop-type2]").text();
+                	String imageUrl = img.attr("src");
+                	String asin = img.parents().parents().parents().attr("id");
+                	String productUrl = baseUrl + "/dp" + "/" + asin;
+                	//String productUrl = baseUrl + img.parents().parents().attr("href");                	
+                	List<Integer> ranks = getRanks(salesMovement.text());
+                	DimProduct dp = new DimProduct(null, asin, title, "All", null, imageUrl, productUrl, now);
+                	dpr.save(dp);
+                	DimRank dr = new DimRank(null, dp, now, ranks.get(0), ranks.get(1));
+                	drr.save(dr);                	                	
+				} catch (Exception e) {
+					//e.printStackTrace();
+				}
+            }
+
+            Elements categories = doc.select("div[id*=left-col]");
+            Elements lista = categories.select("div[role=group]").first().children().first().children().last().children().first().children();
+            for (Element category : lista) {
+            	try {
+            		String categoryName = category.text();
+    				String hrefCategory = baseUrl + category.childNode(0).attr("href");
+    				System.out.println(categoryName + " - " + hrefCategory);
+    				
+    				Document catDoc = Jsoup.connect(hrefCategory)
+    	                    .userAgent("Mozilla/5.0")
+    	                    .timeout(10000)
+    	                    .get();
+    	            
+    	            Elements lis = catDoc.select("ol[class*=a-ordered-list a-vertical]").first().children();
+    	            for (Element tmp : lis) {
+    	            	try {
+    	            		String title = tmp.children().first().select("img").last().attr("alt");
+    	                	String imageUrl = tmp.children().first().select("img").last().attr("src");
+    	                	String asin = tmp.children().first().select("div[data-asin]").attr("data-asin");
+    	                	String productUrl = baseUrl + "/dp" + "/" + asin;
+    	                	//String productUrl = baseUrl + tmp.children().first().select("a[class=a-link-normal]").last().attr("href");
+    	                	String rank = tmp.children().first().select("span[class*=rank-metadata]").text();
+    	                	List<Integer> ranks = getRanks(rank);
+    	                	DimProduct dp = new DimProduct(null, asin, title, categoryName, null, imageUrl, productUrl, now);
+    	                	dpr.save(dp);
+    	                	DimRank dr = new DimRank(null, dp, now, ranks.get(0), ranks.get(1));
+    	                	drr.save(dr);
+    					} catch (Exception e) {
+    						//e.printStackTrace();
+    					}
+    				}
+				} catch (Exception e) {
+					//e.printStackTrace();
+				}
+			}
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+	
+	public List<Integer> getRanks(String rank) {
+    	String rawRank = rank.replaceAll("\\(", "").replaceAll("\\)", "").replaceAll(",", "");
+		List<Integer> ranks = new ArrayList<>();
+		for(String tmp : rawRank.split(" ")) {
+			try {
+				ranks.add(Integer.valueOf(tmp));
+			} catch (Exception e2) {
+
+			}
+		}
+		if(ranks.size() == 0) {
+			ranks.add(0);
+			ranks.add(0);
+		} else if(ranks.size() == 1) {
+			ranks.add(0);
+		}
+		return ranks;
+	}
     
     public String updateProduct(Authentication authentication, Product product) {
     	String response = "";
