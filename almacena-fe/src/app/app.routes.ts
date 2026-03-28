@@ -16,6 +16,7 @@ import { productManagementResolver } from './product-management/product-manageme
 import { ComboManagement } from './combo-management/combo-management';
 import { comboManagementResolver } from './combo-management/combo-management-resolver';
 import { authGuard } from './guards/auth-guard';
+import { Analytics } from './analytics/analytics';
 
 export const routes: Routes = [
     { path: '', component: Home },
@@ -29,4 +30,5 @@ export const routes: Routes = [
     { path: 'logs', component: Logs, canActivate: [authGuard] },
     { path: 'product-management/:id', component: ProductManagement, canActivate: [authGuard], resolve: { preload: productManagementResolver } },
     { path: 'combo-management/:id', component: ComboManagement, canActivate: [authGuard], resolve: { preload: comboManagementResolver } },
+    { path: 'analytics', component: Analytics, canActivate: [authGuard] },
 ];

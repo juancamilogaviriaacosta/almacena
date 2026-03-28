@@ -1,5 +1,6 @@
 package co.com.almacena.controllers;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -38,6 +39,13 @@ public class InventoryController {
     public ResponseEntity<String> runEtl() {
         is.runEtl();
         return ResponseEntity.ok("Ok");
+    }
+    
+    @GetMapping(path = "api/getProductRanks")
+    public ResponseEntity<List<Object[]>> getProductRanks(@RequestParam("criteria") String criteria,
+    		@RequestParam("start") LocalDate start, @RequestParam("end") LocalDate end) {
+        List<Object[]> data = is.getProductRanks(criteria, start, end);
+		return ResponseEntity.ok(data);
     }
     
     @PostMapping(path = "api/updateProduct", produces = MediaType.APPLICATION_JSON_VALUE)

@@ -3,6 +3,7 @@ package co.com.almacena.services;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.OffsetDateTime;
 import java.time.ZoneOffset;
 import java.util.ArrayList;
@@ -187,6 +188,26 @@ public class InventoryService {
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
+    
+    public List<Object[]> getProductRanks(String criteria, LocalDate start, LocalDate end) {
+    	String sql = "SELECT dp.asin,\n"
+    			+ "dp.created_at,\n"
+    			+ "ARRAY_TO_STRING((STRING_TO_ARRAY(TRIM(title), ' '))[1:3],' '),\n"
+    			+ "dr.current_rank\n"
+    			+ "FROM datalake.dim_product dp\n"
+    			+ "INNER JOIN datalake.dim_rank dr ON (dp.id = dr.dim_product_id)\n"
+    			+ "WHERE 1=1\n"
+    			+ "AND title ILIKE :criteria\n"
+    			+ "AND DATE(dp.created_at) BETWEEN DATE(:start) AND DATE(:end)\n"
+    			+ "ORDER BY dp.created_at\n";
+    	Query nq = em.createNativeQuery(sql);
+    	nq.setParameter("criteria", "%" + criteria.replaceAll(" ", "%") + "%");
+    	nq.setParameter("start", start);
+    	nq.setParameter("end", end);
+    	List<Object[]> resultList = nq.getResultList();
+    	return resultList;
+    	
     }
 	
 	public List<Integer> getRanks(String rank) {

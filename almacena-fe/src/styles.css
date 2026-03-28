@@ -286,6 +286,12 @@ select {
     box-shadow: 0 2px 16px rgba(0, 0, 0, 0.2);
 }
 
+.no-link {
+  text-decoration: none;
+  color: inherit;
+  cursor: default;
+}
+
 @media (max-width:1000px) {
     .stats {
         grid-template-columns: repeat(2, 1fr);
