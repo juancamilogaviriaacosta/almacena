@@ -3,6 +3,8 @@ package co.com.almacena.entities;
 import java.math.BigDecimal;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -32,6 +34,7 @@ public class Product {
 	private String sku;
 	
 	@OneToMany(mappedBy = "product")
+	@JsonManagedReference("product-codes")
 	private List<Code> code;
 	
 	@Column

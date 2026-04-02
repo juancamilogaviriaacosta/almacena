@@ -3,7 +3,7 @@
         <div class="card chart-max">
             <form class="filter-section">
                 <label>Buscar: </label>
-                <input type="text" [(ngModel)]="criteria" name="criteria"/>
+                <input type="text" [(ngModel)]="criteria" name="criteria" (keydown.enter)="loadData()"/>
                 <label>Inicio: </label>
                 <input type="date" [(ngModel)]="start" name="start"/>
                 <label>Fin: </label>

@@ -1,5 +1,5 @@
 import { HttpClient } from '@angular/common/http';
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 
@@ -18,6 +18,7 @@ export class ProductManagement implements OnInit {
 
   constructor(private http: HttpClient,
     private ar: ActivatedRoute,
+    private cdr: ChangeDetectorRef,
     private router: Router) {}
 
   ngOnInit() {
@@ -38,24 +39,14 @@ export class ProductManagement implements OnInit {
   
   save() {
     this.uploading = true;
-    this.http.post('/api/updateProduct', this.product, { responseType: 'text' })
-      .subscribe({
-        next: (response) => {
-          setTimeout(() => {
-            this.uploading = false;
-            if("Ok" === response) {
-              window.history.back();
-            } else {
-              this.mensajeError = response as string;
-            }
-          }, 500);
-        },
-        error: (error) => {
-          setTimeout(() => {
-            this.uploading = false;
-            this.mensajeError = JSON.stringify(error);
-          }, 500);
+      this.http.post('/api/updateProduct', this.product, { responseType: 'text' }).subscribe(response =>{
+        this.uploading = false;
+        if ("Ok" === response) {
+          window.history.back();
+        } else {
+          this.mensajeError = response as string;
         }
+        this.cdr.detectChanges();
       });
   }
 

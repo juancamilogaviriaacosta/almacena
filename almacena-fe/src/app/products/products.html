@@ -17,7 +17,11 @@
                 <tbody>
                     @for (p of (table | async); track $index) {
                     <tr>
-                        <td [innerHTML]="p.codes | semicolonBreak"></td>
+                        <td>
+                        @for(cod of p.code; track $index) {
+                            {{ cod.code }}<br />
+                        }
+                        </td>
                         <td>{{ p.name }}</td>
                         <td>{{ p.price | number: '1.0-2'}}</td>
                         <td>{{ p.category }}</td>

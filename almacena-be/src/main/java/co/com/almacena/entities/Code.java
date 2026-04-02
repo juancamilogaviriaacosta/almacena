@@ -1,5 +1,7 @@
 package co.com.almacena.entities;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -26,9 +28,11 @@ public class Code {
 	private String code;
 	
 	@ManyToOne
+	@JsonBackReference("product-codes")
 	private Product product;
 	
 	@ManyToOne
+	@JsonBackReference("combo-codes")
 	private Combo combo;
 	
 	public Code() {		

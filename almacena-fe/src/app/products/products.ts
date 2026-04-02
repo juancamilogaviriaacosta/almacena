@@ -1,12 +1,11 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
-import { SemicolonBreakPipe } from '../pipes/semicolon-break-pipe';
+import { Component } from '@angular/core';
 import { AsyncPipe, DecimalPipe } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-products',
-  imports: [SemicolonBreakPipe, DecimalPipe, AsyncPipe],
+  imports: [ DecimalPipe, AsyncPipe],
   templateUrl: './products.html',
   styleUrl: './products.css',
 })

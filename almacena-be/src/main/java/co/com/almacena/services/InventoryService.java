@@ -109,6 +109,10 @@ public class InventoryService {
 	
 	@Autowired
 	private DimRankRepository drr;
+	
+	private Tenant getTenant(Authentication authentication) {
+		return new Tenant(((UserDto) authentication.getPrincipal()).getTenantId(), null, null);
+	}
 	    
     public void initDatabase() {
     	String enc = new BCryptPasswordEncoder().encode("123456");
@@ -217,7 +221,7 @@ public class InventoryService {
 			try {
 				ranks.add(Integer.valueOf(tmp));
 			} catch (Exception e2) {
-
+				//e.printStackTrace();
 			}
 		}
 		if(ranks.size() == 0) {
@@ -229,7 +233,9 @@ public class InventoryService {
 		return ranks;
 	}
     
+	@Transactional
     public String updateProduct(Authentication authentication, Product product) {
+    	Tenant tenant = new Tenant(((UserDto) authentication.getPrincipal()).getTenantId(), null, null);
     	String response = "";
     	List<String> codes = product.getCode()
     			.stream()
@@ -238,41 +244,41 @@ public class InventoryService {
     			.filter(code -> !code.trim().isEmpty()).toList();
     	List<String> names = new ArrayList<>();
     	if(!codes.isEmpty()) {
-    		String placeholders = String.join(",", Collections.nCopies(codes.size(), "?"));
         	String sqlCodes = "SELECT DISTINCT pro.name\n"
-        			+ "FROM code cod\n"
-        			+ "INNER JOIN product pro ON cod.product_id = pro.id\n"
-        			+ "WHERE 1 = 1\n"
-        			+ "AND cod.code IN ("+ placeholders +")\n"
-    				+ "AND pro.id != ?";
-        	List<Object> codesToQuery = new ArrayList<>(codes);
-        	codesToQuery.add(product.getId());
-        	names = jdbcTemplate.queryForList(sqlCodes, String.class, codesToQuery.toArray());
+        			+ "FROM codes cod\n"
+        			+ "INNER JOIN products pro ON cod.product_id = pro.id\n"
+        			+ "WHERE pro.tenant_id = :tenantId\n"
+        			+ "AND cod.code IN (:codes)\n"
+    				+ "AND pro.id != :productId";
+        	
+        	Query queryCodes = em.createNativeQuery(sqlCodes);
+        	queryCodes.setParameter("tenantId", tenant.getId());
+        	queryCodes.setParameter("codes", codes);
+        	queryCodes.setParameter("productId", product.getId());
+        	names = queryCodes.getResultList();
         	if(!names.isEmpty()) {
 	        	response = "Código duplicado en:<br/>";
 	    		for (String tmp : names) {
 	    			response = response + tmp + "<br/>";
 	    		}
+	    		return response;
         	}
     	}
     	
     	if(names.isEmpty()) {
-    		if(product.getId()==null) {
-    			String newProduct = "INSERT INTO product(category, name, price, sku, status) VALUES (?, ?, ?, ?, ?) RETURNING id";
-    			List<Map<String, Object>> newBd = jdbcTemplate.queryForList(newProduct, product.getCategory(), product.getName(),
-    					product.getPrice(), product.getSku(), product.getStatus().name());
-    			product.setId((Long) newBd.get(0).get("id"));
-    		} else {
-	    		String sqlProduct = "UPDATE product SET category=?, name=?, sku=?, status=?, price=? WHERE id = ?";
-	    		String deleteCodes = "DELETE FROM code WHERE product_id = ?";	    	
-		    	jdbcTemplate.update(sqlProduct, product.getCategory(), product.getName(), product.getSku(),
-		    			product.getStatus().name(), product.getPrice(), product.getId());
-		    	jdbcTemplate.update(deleteCodes, product.getId());
+    		if(product.getId()==null) { 			
+    			product = new Product(null, tenant, product.getSku(),
+    					null, product.getName(), product.getCategory(), product.getPrice(), product.getStatus());
+    		} else { 			
+		    	product.setCode(null);
+		    	pr.save(product);
+    		    em.createNativeQuery("DELETE FROM codes WHERE product_id = :id").setParameter("id", product.getId()).executeUpdate();
     		}
-    		String newCodes = "INSERT INTO code(code, status, product_id) VALUES (?, ?, ?)";
+    		List<Code> codesToSave = new ArrayList<>();
     		for (String tmp : codes) {
-	    		jdbcTemplate.update(newCodes, tmp, Status.Activo.name(), product.getId());
-			}
+    			codesToSave.add(new Code(null, tenant, tmp, product, null));
+    		}
+    		codr.saveAll(codesToSave);
 	    	response = "Ok";
     	}
     	return response;
@@ -357,42 +363,12 @@ public class InventoryService {
 		}
     }
 
-
-    public Map<String, Object> getProduct(Authentication authentication, Long id) {
-    	String sql = "SELECT pro.id, pro.category, pro.name, pro.sku, pro.status, pro.price,\n"
-    			+ "'[' || STRING_AGG('{\"id\":' || cod.id || ', \"code\":\"' || cod.code || '\"}', ',') || ']' AS code\n"
-    			+ "FROM products pro\n"
-    			+ "LEFT JOIN codes cod ON pro.id = cod.product_id\n"
-    			+ "WHERE pro.id = ?\n"
-    			+ "GROUP BY 1, 2, 3, 4, 5, 6\n"
-    			+ "ORDER BY 1";
-        Map<String, Object> queryForList = jdbcTemplate.queryForList(sql, id).get(0);
-        String code = (String) queryForList.get("code");
-        try {
-        	
-        	if(code != null) {
-        		List<Map<String, Object>> json = new ObjectMapper().readValue(code, new TypeReference<List<Map<String, Object>>>() {});
-            	queryForList.put("code", json);        	
-        	} else {
-        		List<Map<String, Object>> codes = new ArrayList<>();
-        		Map<String, Object> blank = new HashMap<>();
-				codes.add(blank);
-        		queryForList.put("code", codes);
-        	}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-        return queryForList;
+    public Product getProduct(Authentication authentication, Long id) {
+    	return pr.findById(id).orElse(null);
     }
     
-    public List<Map<String, Object>> getProducts(Authentication authentication) {
-    	String sql = "SELECT pro.id, pro.category, pro.name, pro.sku, pro.status, pro.price, STRING_AGG(DISTINCT cod.code, ';' ORDER BY cod.code) AS codes\n"
-    			+ "FROM products pro\n"
-    			+ "LEFT JOIN codes cod ON pro.id = cod.product_id\n"
-    			+ "GROUP BY 1, 2, 3, 4, 5, 6\n"
-    			+ "ORDER BY 3";
-        List<Map<String, Object>> queryForList = jdbcTemplate.queryForList(sql);
-        return queryForList;
+    public List<Product> getProducts(Authentication authentication) {
+    	return pr.findByTenantIdOrderByNameAsc(getTenant(authentication).getId());
     }
     
     public List<Map<String, Object>> getCombos(Authentication authentication) {
@@ -511,7 +487,7 @@ public class InventoryService {
 		Map<String, Integer> response = new HashMap<>();
 		response.put("success", 0);
 		response.put("errors", 0);
-		Tenant tenant = new Tenant(((UserDto) authentication.getPrincipal()).getTenantId(), null, null);
+		Tenant tenant = getTenant(authentication);
 		Warehouse warehouse = new Warehouse(warehouseId, null, null);
 		User user = new User(((UserDto) authentication.getPrincipal()).getId(), null, null, null, null, null, null); 
     	List<Product> allProducts = pr.findAll(Sort.by("id"));    	

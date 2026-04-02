@@ -2,6 +2,8 @@ package co.com.almacena.entities;
 
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -38,6 +40,7 @@ public class Combo {
 	private List<ProductDetail> productDetail;
 	
 	@OneToMany(mappedBy = "combo")
+	@JsonManagedReference("combo-codes")
 	private List<Code> code;
 
 	public Combo() {

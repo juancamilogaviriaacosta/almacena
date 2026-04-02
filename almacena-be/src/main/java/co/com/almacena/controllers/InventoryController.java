@@ -68,12 +68,12 @@ public class InventoryController {
     }
     
     @GetMapping(path = "api/getProduct")
-    public Map<String, Object> getProduct(Authentication authentication, @RequestParam("id") Long id) {
+    public Product getProduct(Authentication authentication, @RequestParam("id") Long id) {
         return is.getProduct(authentication, id);
     }
     
     @GetMapping(path = "api/getProducts")
-    public List<Map<String, Object>> getProducts(Authentication authentication) {
+    public List<Product> getProducts(Authentication authentication) {
         return is.getProducts(authentication);
     }
     
