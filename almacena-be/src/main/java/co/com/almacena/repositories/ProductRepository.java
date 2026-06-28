@@ -8,4 +8,5 @@ import co.com.almacena.entities.Product;
 
 public interface ProductRepository extends JpaRepository <Product, Long> {
 	List<Product> findByTenantIdOrderByNameAsc(Long tenantId);
+	Product findByIdAndTenantId(Long id, Long tenantId);
 }

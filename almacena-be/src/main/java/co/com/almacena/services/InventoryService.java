@@ -273,7 +273,7 @@ public class InventoryService {
     	
     }
 	
-	public List<Integer> getRanks(String rank) {
+	private List<Integer> getRanks(String rank) {
     	String rawRank = rank.replaceAll("\\(", "").replaceAll("\\)", "").replaceAll(",", "");
 		List<Integer> ranks = new ArrayList<>();
 		for(String tmp : rawRank.split(" ")) {
@@ -409,7 +409,7 @@ public class InventoryService {
     
     public void manualMovement(Authentication authentication, Long warehouseId, List<Map<String, Object>> manualMovement) {
     	OffsetDateTime now = OffsetDateTime.now(ZoneOffset.UTC);
-    	String sqlInvMovement = "INSERT INTO inventory_movement(fechahora, movement_type, quantity, warehouse_id, usuario_id, product_id)\n"
+    	String sqlInvMovement = "INSERT INTO inventory_movements(fechahora, movement_type, quantity, warehouse_id, usuario_id, product_id)\n"
 	    		+ "VALUES (?, ?, ?, ?, ?, ?)";
     	String sqlAdition = "UPDATE inventory SET quantity = quantity + ? WHERE product_id=? AND warehouse_id=?";
     	for (Map<String, Object> tmp : manualMovement) {
@@ -423,24 +423,29 @@ public class InventoryService {
     }
 
     public Product getProduct(Authentication authentication, Long id) {
-    	return pr.findById(id).orElse(null);
+    	Tenant tenant = getTenant(authentication);
+    	return pr.findByIdAndTenantId(id, tenant.getId());
     }
     
     public List<Product> getProducts(Authentication authentication) {
-    	return pr.findByTenantIdOrderByNameAsc(getTenant(authentication).getId());
+    	Tenant tenant = getTenant(authentication);
+    	return pr.findByTenantIdOrderByNameAsc(tenant.getId());
     }
     
     public List<Map<String, Object>> getCombos(Authentication authentication) {
+    	Tenant tenant = getTenant(authentication);
     	String sql = "SELECT com.id, com.name, com.status, STRING_AGG(DISTINCT cod.code, ';' ORDER BY cod.code) AS codes\n"
     			+ "FROM combos com\n"
     			+ "LEFT JOIN codes cod ON com.id = cod.combo_id\n"
+    			+ "WHERE com.tenant_id = ?\n"
     			+ "GROUP BY 1, 2, 3\n"
     			+ "ORDER BY 2";
-        List<Map<String, Object>> queryForList = jdbcTemplate.queryForList(sql);
+        List<Map<String, Object>> queryForList = jdbcTemplate.queryForList(sql, tenant.getId());
         return queryForList;
     }
     
     public Map<String, Object> getCombo(Authentication authentication, Long id) {
+    	Tenant tenant = getTenant(authentication);
     	String sql = "SELECT com.id, com.name, com.status,\n"
     			+ "'[' || STRING_AGG(DISTINCT '{\"id\":' || cod.id || ', \"code\":\"' || cod.code || '\"}', ',') || ']' AS code,\n"
     			+ "'[' || STRING_AGG(DISTINCT '{\"product\":{\"id\":' || pro.id || ', \"name\":\"' || pro.name || '\"}' || ', \"quantity\":' || prd.quantity || '}', ',') || ']' AS productDetail\n"
@@ -449,10 +454,11 @@ public class InventoryService {
     			+ "LEFT JOIN combos_product_detail cpd ON com.id = cpd.combo_id\n"
     			+ "LEFT JOIN product_details prd ON cpd.product_detail_id = prd.id\n"
     			+ "LEFT JOIN products pro ON prd.product_id = pro.id\n"
-    			+ "WHERE com.id = ?\n"
+    			+ "WHERE com.tenant_id = ?\n"
+    			+ "AND com.id = ?\n"
     			+ "GROUP BY 1, 2, 3\n"
     			+ "ORDER BY 1";
-        Map<String, Object> queryForList = jdbcTemplate.queryForList(sql, id).get(0);
+        Map<String, Object> queryForList = jdbcTemplate.queryForList(sql, tenant.getId() ,id).get(0);
         String code = (String) queryForList.get("code");
         String productDetail = (String) queryForList.get("productDetail");
         try {
@@ -480,12 +486,14 @@ public class InventoryService {
     }
     
     public List<Map<String, Object>> getInventory(Authentication authentication, String filterDate, Long warehouseId) {
+    	Tenant tenant = getTenant(authentication);
     	String sql = "SELECT sub.product_id, pro.name, war.name AS warehouse, inv.quantity, pro.price, to_char(sub.fechahora, 'YYYY-MM-DD HH24:MI:SS') AS fechahora, STRING_AGG(DISTINCT cod.code, ';' ORDER BY cod.code) AS codes\n"
     			+ "FROM (\n"
     			+ "SELECT pro.id AS product_id, MAX(inv.fechahora) AS fechahora\n"
     			+ "FROM products pro\n"
     			+ "LEFT JOIN inventories inv ON inv.product_id = pro.id\n"
-    			+ "WHERE inv.fechahora <= TO_TIMESTAMP(?, 'YYYY-MM-DD HH24:MI:SS')\n"
+    			+ "WHERE inv.tenant_id = ?\n"
+    			+ "AND inv.fechahora <= TO_TIMESTAMP(?, 'YYYY-MM-DD HH24:MI:SS')\n"
     			+ (!Long.valueOf(-1).equals(warehouseId) ? "AND warehouse_id = ?\n" : "")
     			+ "GROUP BY 1\n"
     			+ ") sub\n"
@@ -497,6 +505,7 @@ public class InventoryService {
     			+ "ORDER BY 2";
     	
     	List<Object> params = new ArrayList<>();
+    	params.add(tenant.getId());
     	params.add(filterDate + " 23:59:59");
     	if (!Long.valueOf(-1).equals(warehouseId)) {
     	    params.add(warehouseId);
@@ -506,11 +515,13 @@ public class InventoryService {
 	}
     
     public List<Warehouse> getWarehouse(Authentication authentication) {
-    	return wr.findAll();
+    	Tenant tenant = getTenant(authentication);
+    	return wr.findByTenantIdOrderByNameAsc(tenant.getId());
 	}
     
     public List<Log> getLogs(Authentication authentication) {
-    	return lr.findAll(Sort.by("fechahora"));
+    	Tenant tenant = getTenant(authentication);
+    	return lr.findByTenantIdOrderByIdDesc(tenant.getId());
 	}
     
     public List<InventoryMovement> getInventoryMovement(Authentication authentication) {    	
@@ -530,7 +541,7 @@ public class InventoryService {
                 });
     }
     
-    public Long getDbId(List<Product> allProducts, String code) {
+    private Long getDbId(List<Product> allProducts, String code) {
     	for (Product product : allProducts) {
     		for (Code dbCode : product.getCode()) {
 				if(dbCode.getCode().equals(code)) {
