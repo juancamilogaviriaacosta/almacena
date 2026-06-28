@@ -1,6 +1,9 @@
 package co.com.almacena.services;
 
+import java.io.BufferedWriter;
 import java.math.BigDecimal;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.text.DecimalFormat;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -20,10 +23,6 @@ import org.apache.poi.ss.usermodel.Row;
 import org.apache.poi.ss.usermodel.Sheet;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.ss.usermodel.WorkbookFactory;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.jsoup.select.Elements;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -35,6 +34,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.microsoft.playwright.Browser;
+import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.Page;
+import com.microsoft.playwright.Playwright;
 
 import co.com.almacena.entities.Code;
 import co.com.almacena.entities.Combo;
@@ -125,73 +128,129 @@ public class InventoryService {
     }
     
     public void runEtl() {
-        try {
-        	Instant now = Instant.now();
-        	String baseUrl = "";
-            String url = baseUrl + "/gp/movers-and-shakers";
-            Document doc = Jsoup.connect(url)
-                    .userAgent("Mozilla/5.0")
-                    .timeout(10000)
-                    .get();
-            
-            Elements products = doc.select("div.a-carousel-row-inner").select("li[aria-roledescription=slide]");
-            for (Element product : products) {
-            	try {
-            		Elements salesMovement = product.select("span[class*=carousel-sales-movement]");
-                	Elements img = product.select("img[alt=\"\"]");
-                	String title = product.select("div[class*=truncate-desktop-type2]").text();
-                	String imageUrl = img.attr("src");
-                	String asin = img.parents().parents().parents().attr("id");
-                	String productUrl = baseUrl + "/dp" + "/" + asin;
-                	//String productUrl = baseUrl + img.parents().parents().attr("href");                	
-                	List<Integer> ranks = getRanks(salesMovement.text());
-                	DimProduct dp = new DimProduct(null, asin, title, "All", null, imageUrl, productUrl, now);
-                	dpr.save(dp);
-                	DimRank dr = new DimRank(null, dp, now, ranks.get(0), ranks.get(1));
-                	drr.save(dr);                	                	
-				} catch (Exception e) {
-					//e.printStackTrace();
-				}
-            }
+    	try (BufferedWriter writer = Files.newBufferedWriter(Paths.get("/home/juan/Escritorio/amazon.csv"))) {
+        	try (Playwright playwright = Playwright.create()) {
+        		Instant now = Instant.now();
+        		String baseUrl = "https://www.amazon.com";
+        	    Browser browser = playwright.chromium().launch();
+        	    Page page = browser.newPage(new Browser.NewPageOptions().setViewportSize(15360, 8640));
+        	    page.navigate(baseUrl + "/-/es/gp/new-releases");
+        	    //Files.writeString(Path.of("/home/juan/Escritorio/salida.htm"), page.content());
+        	    
+                //System.out.println("New releases");
+        	    Locator items = page.locator("li.a-carousel-card");
+                int count = items.count();
+                for (int i = 0; i < count; i++) {
+                    Locator item = items.nth(i); 
+                    String asin = baseUrl + "/dp/" + item.locator("div[data-asin]").getAttribute("data-asin");
+                    String text = item.innerText().replaceAll("\n", " ").replaceAll("[^A-Za-z0-9 ]", "").replaceFirst(" ", ";");
+                    //System.out.println(text + ";" + asin);
+                }
 
-            Elements categories = doc.select("div[id*=left-col]");
-            Elements lista = categories.select("div[role=group]").first().children().first().children().last().children().first().children();
-            for (Element category : lista) {
-            	try {
-            		String categoryName = category.text();
-    				String hrefCategory = baseUrl + category.childNode(0).attr("href");
-    				System.out.println(categoryName + " - " + hrefCategory);
-    				
-    				Document catDoc = Jsoup.connect(hrefCategory)
-    	                    .userAgent("Mozilla/5.0")
-    	                    .timeout(10000)
-    	                    .get();
-    	            
-    	            Elements lis = catDoc.select("ol[class*=a-ordered-list a-vertical]").first().children();
-    	            for (Element tmp : lis) {
-    	            	try {
-    	            		String title = tmp.children().first().select("img").last().attr("alt");
-    	                	String imageUrl = tmp.children().first().select("img").last().attr("src");
-    	                	String asin = tmp.children().first().select("div[data-asin]").attr("data-asin");
-    	                	String productUrl = baseUrl + "/dp" + "/" + asin;
-    	                	//String productUrl = baseUrl + tmp.children().first().select("a[class=a-link-normal]").last().attr("href");
-    	                	String rank = tmp.children().first().select("span[class*=rank-metadata]").text();
-    	                	List<Integer> ranks = getRanks(rank);
-    	                	DimProduct dp = new DimProduct(null, asin, title, categoryName, null, imageUrl, productUrl, now);
+                Locator links = page.locator("span.a-list-item a");
+                for (int i = 0; i < links.count(); i++) {
+                    Locator link = links.nth(i);
+                    String categoryName = link.innerText();
+                    String href = link.getAttribute("href");
+                    //System.out.println(categoryName);
+                    //writer.write(categoryName);
+                    //writer.newLine();
+                    
+                    try (Playwright playwright2 = Playwright.create()) {
+                	    Browser browser2 = playwright2.chromium().launch();
+                	    Page page2 = browser2.newPage(new Browser.NewPageOptions().setViewportSize(15360, 8640));
+                	    page2.navigate(baseUrl + href);
+                	    //Files.writeString(Path.of("/home/juan/Escritorio/" + categoryName + ".html"), page2.content());
+                	    Locator items2 = page2.locator("li.zg-no-numbers");
+                	    int count2 = items2.count();
+                	    for (int j = 0; j < count2; j++) {
+                            Locator item = items2.nth(j);
+                            String asin = item.locator("div[data-asin]").getAttribute("data-asin");
+                            String productUrl = baseUrl + "/dp/" + asin;
+                            String title = item.innerText().replaceAll("\n", " ").replaceAll("[^A-Za-z0-9 ]", "").replaceFirst("^\\S+\\s*", "");
+                            title = title.substring(0, Math.min(title.length(), 255));
+                            //System.out.println(title + ";" + asin);
+                            //writer.write(title + ";" + asin);
+    	                    //writer.newLine();
+    	                    
+    	                    DimProduct dp = new DimProduct(null, asin, title, categoryName, null, null, productUrl, now);
     	                	dpr.save(dp);
-    	                	DimRank dr = new DimRank(null, dp, now, ranks.get(0), ranks.get(1));
+    	                	DimRank dr = new DimRank(null, dp, now, j+1, null);
     	                	drr.save(dr);
-    					} catch (Exception e) {
-    						//e.printStackTrace();
-    					}
-    				}
+                        }
+            	    }
+            	    if(href.contains("videogames")) {
+            	    	break;
+            	    }
+                }
+        	}
+
+	    	/*
+	    	String baseUrl = "https://www.amazon.com";
+	        String url = baseUrl + "/-/es/Los-ms-vendidos/zgbs";
+	        Document doc = Jsoup.connect(url)
+	                .userAgent("Mozilla/5.0")
+	                .timeout(10000)
+	                .get();
+	
+	        Elements products = doc.select("div.a-carousel-row-inner").select("li[aria-roledescription=slide]");
+	        for (Element product : products) {
+	        	try {
+	        		Elements salesMovement = product.select("span[class*=carousel-sales-movement]");
+	            	Elements img = product.select("img[alt=\"\"]");
+	            	String title = product.select("div[class*=truncate-desktop-type2]").text();
+	            	String imageUrl = img.attr("src");
+	            	String asin = img.parents().parents().parents().attr("id");
+	            	String productUrl = baseUrl + "/dp" + "/" + asin;
+	            	//String productUrl = baseUrl + img.parents().parents().attr("href");                	
+	            	List<Integer> ranks = getRanks(salesMovement.text());
+	            	DimProduct dp = new DimProduct(null, asin, title, "All", null, imageUrl, productUrl, now);
+	            	dpr.save(dp);
+	            	DimRank dr = new DimRank(null, dp, now, ranks.get(0), ranks.get(1));
+	            	drr.save(dr);                	                	
 				} catch (Exception e) {
 					//e.printStackTrace();
 				}
-			}
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+	        }
+	
+	        Elements categories = doc.select("div[id*=left-col]");
+	        Elements lista = categories.select("div[role=group]").first().children().first().children().last().children().first().children();
+	        for (Element category : lista) {
+	        	try {
+	        		String categoryName = category.text();
+					String hrefCategory = baseUrl + category.childNode(0).attr("href");
+					System.out.println(categoryName + " - " + hrefCategory);
+					
+					Document catDoc = Jsoup.connect(hrefCategory)
+		                    .userAgent("Mozilla/5.0")
+		                    .timeout(10000)
+		                    .get();
+		            
+		            Elements lis = catDoc.select("ol[class*=a-ordered-list a-vertical]").first().children();
+		            for (Element tmp : lis) {
+		            	try {
+		            		String title = tmp.children().first().select("img").last().attr("alt");
+		                	String imageUrl = tmp.children().first().select("img").last().attr("src");
+		                	String asin = tmp.children().first().select("div[data-asin]").attr("data-asin");
+		                	String productUrl = baseUrl + "/dp" + "/" + asin;
+		                	//String productUrl = baseUrl + tmp.children().first().select("a[class=a-link-normal]").last().attr("href");
+		                	String rank = tmp.children().first().select("span[class*=rank-metadata]").text();
+		                	List<Integer> ranks = getRanks(rank);
+		                	DimProduct dp = new DimProduct(null, asin, title, categoryName, null, imageUrl, productUrl, now);
+		                	dpr.save(dp);
+		                	DimRank dr = new DimRank(null, dp, now, ranks.get(0), ranks.get(1));
+		                	drr.save(dr);
+						} catch (Exception e) {
+							//e.printStackTrace();
+						}
+					}
+				} catch (Exception e) {
+					//e.printStackTrace();
+				}
+			}*/
+    	} catch (Exception e) {
+    	    e.printStackTrace();
+    	}
     }
     
     public List<Object[]> getProductRanks(String criteria, LocalDate start, LocalDate end) {

@@ -11,7 +11,7 @@ import { BaseChartDirective } from 'ng2-charts';
   styleUrl: './analytics.css',
 })
 export class Analytics implements OnInit {
-  criteria: string = 'power bank';
+  criteria: string = 'cargador';
   start: string = '';
   end: string = '';
   lineChartData: ChartConfiguration<'line'>['data'] = {
